@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { GameRepository } from '../data/repository/GameRepository';
 import { GameDto } from '../data/remote/dto/GameDto';
+import i18n from '../locales/i18n';
 
 interface GameListState {
   title: string;
@@ -27,16 +28,7 @@ export const useGameListStore = create<GameListState>((set, get) => ({
 
     const clean = listType.split('/').pop() ?? listType;
 
-    const titleMap: Record<string, string> = {
-      this_year: 'Popular This Year',
-      all_time: 'All-Time Legends',
-      discover_indie: 'Indie Gems',
-      discover_competitive: 'Competitive',
-      discover_coop: 'Co-Op',
-      discover_retro: 'Retro',
-    };
-
-    const title = titleMap[clean] ?? 'GameVault';
+    const title = i18n.t(`game_list.titles.${clean}`, { defaultValue: i18n.t('game_list.titles.default') });
 
     let result: { data: GameDto[]; error?: string };
     const currentYear = new Date().getFullYear();
@@ -71,7 +63,7 @@ export const useGameListStore = create<GameListState>((set, get) => ({
       title,
       games: result.data,
       isLoading: false,
-      errorMessage: result.error ? 'Failed to load games. Check your connection.' : null,
+      errorMessage: result.error ? i18n.t('game_list.error_failed_to_load') : null,
     });
   },
 

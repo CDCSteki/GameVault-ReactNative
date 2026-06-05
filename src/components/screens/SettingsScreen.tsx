@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme/ThemeContext';
 import { Typography } from '../../theme/typography';
 import { GameVaultTopBar } from '../shared/GameVaultTopBar';
@@ -17,6 +18,7 @@ interface SettingsScreenProps {
 }
 
 export function SettingsScreen({ onAccountDeleted }: SettingsScreenProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const { userId } = useAppStore();
   const {
@@ -37,12 +39,12 @@ export function SettingsScreen({ onAccountDeleted }: SettingsScreenProps) {
 
         {/* System Preferences */}
         <SettingsSectionCard borderColor={colors.border} colors={colors}>
-          <SectionHeader icon="settings-outline" title="SYSTEM PREFERENCES" iconColor={colors.accent} colors={colors} />
+          <SectionHeader icon="settings-outline" title={t('settings.system_preferences')} iconColor={colors.accent} colors={colors} />
 
           {/* Theme Selector */}
           <View style={{ padding: 16 }}>
             <Text style={[Typography.bodyMedium, { color: colors.textPrimary, marginBottom: 12 }]}>
-              Display Theme
+                {t('settings.display_theme')}
             </Text>
             <FlatList
               data={THEME_OPTIONS}
@@ -53,7 +55,7 @@ export function SettingsScreen({ onAccountDeleted }: SettingsScreenProps) {
               renderItem={({ item }) => (
                 <ThemeOption
                   theme={item.theme}
-                  label={item.label}
+                  label={t(`themes.${item.theme}`)}
                   emoji={item.emoji}
                   isSelected={appTheme === item.theme}
                   onPress={() => selectTheme(item.theme)}
@@ -68,12 +70,12 @@ export function SettingsScreen({ onAccountDeleted }: SettingsScreenProps) {
           {/* Language Selector */}
           <View style={{ padding: 16 }}>
             <Text style={[Typography.bodyMedium, { color: colors.textPrimary, marginBottom: 10 }]}>
-              System Language
+              {t('settings.system_language')}
             </Text>
             <View style={styles.langRow}>
               {[
-                { code: 'en', flag: '🇬🇧', name: 'English (US)' },
-                { code: 'ro', flag: '🇷🇴', name: 'Romanian' },
+                { code: 'en', flag: '🇬🇧', name: t('settings.language_english') },
+                { code: 'ro', flag: '🇷🇴', name: t('settings.language_romanian') },
               ].map((lang) => {
                 const isSelected = language === lang.code;
                 return (
@@ -112,16 +114,18 @@ export function SettingsScreen({ onAccountDeleted }: SettingsScreenProps) {
 
         {/* Privacy & Data */}
         <SettingsSectionCard borderColor={colors.border} colors={colors}>
-          <SectionHeader icon="lock-closed-outline" title="PRIVACY & DATA" iconColor={colors.accent} colors={colors} />
+          <SectionHeader icon="lock-closed-outline" title={t('settings.privacy_data')} iconColor={colors.accent} colors={colors} />
           <View style={styles.settingsRow}>
             <View style={{ flex: 1 }}>
-              <Text style={[Typography.bodyMedium, { color: colors.textPrimary }]}>Search History</Text>
+              <Text style={[Typography.bodyMedium, { color: colors.textPrimary }]}>
+                {t('settings.search_history')}
+              </Text>
               <Text style={[Typography.bodySmall, { color: colors.textMuted }]}>
-                {historyCleared ? 'Cleared!' : 'Last cleared: Never'}
+                {historyCleared ? t('settings.cleared') : t('settings.last_cleared_never')}
               </Text>
             </View>
             <TouchableOpacity onPress={clearSearchHistory}>
-              <Text style={[Typography.labelSmall, { color: colors.accentSecondary }]}>Clear Now</Text>
+              <Text style={[Typography.labelSmall, { color: colors.accentSecondary }]}>{t('settings.clear_now')}</Text>
             </TouchableOpacity>
           </View>
         </SettingsSectionCard>
@@ -130,13 +134,13 @@ export function SettingsScreen({ onAccountDeleted }: SettingsScreenProps) {
 
         {/* Account Control */}
         <SettingsSectionCard borderColor={colors.statusRed + '66'} colors={colors}>
-          <SectionHeader icon="warning-outline" title="ACCOUNT CONTROL" iconColor={colors.statusRed} colors={colors} />
+          <SectionHeader icon="warning-outline" title={t('settings.account_control')} iconColor={colors.statusRed} colors={colors} />
           <View style={{ padding: 16, gap: 8 }}>
             <Text style={[Typography.titleMedium, { color: colors.textPrimary, fontWeight: '700' }]}>
-              Deactivate Account
+              {t('settings.deactivate_account')}
             </Text>
             <Text style={[Typography.bodySmall, { color: colors.textSecondary }]}>
-              Permanently deletes your profile, game library, and all associated data. This action is irreversible.
+              {t('settings.deactivate_desc')}
             </Text>
             <View style={{ height: 4 }} />
             <TouchableOpacity
@@ -144,7 +148,7 @@ export function SettingsScreen({ onAccountDeleted }: SettingsScreenProps) {
               style={[styles.deleteBtn, { borderColor: colors.statusRed }]}
             >
               <Text style={[Typography.labelMedium, { color: colors.statusRed, fontWeight: '700', letterSpacing: 1 }]}>
-                DELETE PROFILE
+                {t('settings.delete_profile')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -162,23 +166,23 @@ export function SettingsScreen({ onAccountDeleted }: SettingsScreenProps) {
         <View style={styles.dialogOverlay}>
           <View style={[styles.dialog, { backgroundColor: colors.card }]}>
             <Text style={[Typography.titleLarge, { color: colors.statusRed, fontWeight: '700', marginBottom: 12 }]}>
-              Delete Account
+                {t('settings.delete_account_title')}
             </Text>
             <Text style={[Typography.bodyMedium, { color: colors.textSecondary, marginBottom: 24 }]}>
-              Are you sure? All your data will be permanently deleted.
+              {t('settings.delete_account_desc')}
             </Text>
             <View style={styles.dialogActions}>
               <TouchableOpacity
                 onPress={dismissDeleteAccountDialog}
                 style={[styles.dialogCancelBtn, { borderColor: colors.border }]}
               >
-                <Text style={[Typography.labelMedium, { color: colors.textSecondary }]}>Cancel</Text>
+                <Text style={[Typography.labelMedium, { color: colors.textSecondary }]}>{t('settings.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => deleteAccount(userId, onAccountDeleted)}
                 style={[styles.dialogDeleteBtn, { backgroundColor: colors.statusRed }]}
               >
-                <Text style={[Typography.labelMedium, { color: colors.textPrimary }]}>DELETE</Text>
+                <Text style={[Typography.labelMedium, { color: colors.textPrimary }]}>{t('settings.delete')}</Text>
               </TouchableOpacity>
             </View>
           </View>

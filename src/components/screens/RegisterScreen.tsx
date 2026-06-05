@@ -15,6 +15,7 @@ import { GameVaultTextField } from '../shared/GameVaultTextField';
 import { GradientButton } from '../shared/GradientButton';
 import { PasswordStrengthIndicator } from '../shared/PasswordStrengthIndicator';
 import { useRegisterStore } from '../../store/useAuthStore';
+import { useTranslation } from 'react-i18next';
 
 interface RegisterScreenProps {
   onRegisterSuccess: () => void;
@@ -22,6 +23,7 @@ interface RegisterScreenProps {
 }
 
 export function RegisterScreen({ onRegisterSuccess, onNavigateToLogin }: RegisterScreenProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const {
     username, email, password, confirmPassword,
@@ -65,17 +67,17 @@ export function RegisterScreen({ onRegisterSuccess, onNavigateToLogin }: Registe
                 { color: colors.textSecondary, textAlign: 'center', marginTop: 8, marginBottom: 32 },
               ]}
             >
-              Create your account
+                {t('register.create_account')}
             </Text>
 
             {/* Username */}
             <Text style={[Typography.labelMedium, { color: colors.textSecondary, marginBottom: 8 }]}>
-              Username
+                {t('register.username_txt')}
             </Text>
             <GameVaultTextField
               value={username}
               onChangeText={setUsername}
-              placeholder="Choose a username"
+              placeholder={t('register.username_placeholder')}
               leadingIcon="person-outline"
               autoCapitalize="none"
               returnKeyType="next"
@@ -85,12 +87,12 @@ export function RegisterScreen({ onRegisterSuccess, onNavigateToLogin }: Registe
 
             {/* Email */}
             <Text style={[Typography.labelMedium, { color: colors.textSecondary, marginBottom: 8 }]}>
-              Email
+              {t('register.email_txt')}
             </Text>
             <GameVaultTextField
               value={email}
               onChangeText={setEmail}
-              placeholder="Enter your email"
+              placeholder={t('register.email_placeholder')}
               leadingIcon="mail-outline"
               keyboardType="email-address"
               autoCapitalize="none"
@@ -101,12 +103,12 @@ export function RegisterScreen({ onRegisterSuccess, onNavigateToLogin }: Registe
 
             {/* Password */}
             <Text style={[Typography.labelMedium, { color: colors.textSecondary, marginBottom: 8 }]}>
-              Password
+              {t('register.password_txt')}
             </Text>
             <GameVaultTextField
               value={password}
               onChangeText={setPassword}
-              placeholder="Min. 6 characters"
+              placeholder={t('register.password_placeholder')}
               leadingIcon="lock-closed-outline"
               isPassword
               isPasswordVisible={isPasswordVisible}
@@ -123,12 +125,12 @@ export function RegisterScreen({ onRegisterSuccess, onNavigateToLogin }: Registe
 
             {/* Confirm Password */}
             <Text style={[Typography.labelMedium, { color: colors.textSecondary, marginBottom: 8 }]}>
-              Confirm Password
+              {t('register.confirm_password_txt')}
             </Text>
             <GameVaultTextField
               value={confirmPassword}
               onChangeText={setConfirmPassword}
-              placeholder="Repeat your password"
+              placeholder={t('register.confirm_password_placeholder')}
               leadingIcon="lock-closed-outline"
               isPassword
               isPasswordVisible={isConfirmPasswordVisible}
@@ -152,7 +154,7 @@ export function RegisterScreen({ onRegisterSuccess, onNavigateToLogin }: Registe
             <View style={{ height: 28 }} />
 
             <GradientButton
-              text="CREATE ACCOUNT"
+              text={t('register.sign_up_btn')}
               onPress={() => register(onRegisterSuccess)}
               isLoading={isLoading}
             />
@@ -161,13 +163,13 @@ export function RegisterScreen({ onRegisterSuccess, onNavigateToLogin }: Registe
 
             <View style={styles.loginRow}>
               <Text style={[Typography.bodySmall, { color: colors.textSecondary }]}>
-                Already have an account?{' '}
+                {t('register.has_account')}
               </Text>
               <TouchableOpacity onPress={onNavigateToLogin}>
                 <Text
                   style={[Typography.bodySmall, { color: colors.accent, fontWeight: '700' }]}
                 >
-                  Sign In
+                  {t('register.sign_in_link')}
                 </Text>
               </TouchableOpacity>
             </View>

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { AppPreferences } from '../data/preferences/AppPreferences';
 import { AppTheme } from '../theme/colors';
+import i18n from '../locales/i18n';
 
 interface AppState {
   isLoggedIn: boolean;
@@ -25,6 +26,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   initialize: async () => {
     const prefs = await AppPreferences.loadAll();
+    await i18n.changeLanguage(prefs.language);
     set({
       isLoggedIn: prefs.isLoggedIn,
       userId: prefs.userId,
@@ -51,6 +53,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   setLanguage: async (lang: string) => {
     await AppPreferences.setLanguage(lang);
+    await i18n.changeLanguage(lang);
     set({ language: lang });
   },
 }));

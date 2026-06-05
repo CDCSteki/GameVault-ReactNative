@@ -15,12 +15,14 @@ import { PasswordStrengthIndicator } from '../shared/PasswordStrengthIndicator';
 import { useProfileStore } from '../../store/useAuthStore';
 import { useAppStore } from '../../store/useAppStore';
 import { pickImageFromGallery, takePhotoWithCamera } from '../../utils/imagePicker';
+import { useTranslation } from 'react-i18next';
 
 interface ProfileScreenProps {
   onLogout: () => void;
 }
 
 export function ProfileScreen({ onLogout }: ProfileScreenProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const { userId } = useAppStore();
   const {
@@ -93,17 +95,17 @@ export function ProfileScreen({ onLogout }: ProfileScreenProps) {
         )}
 
         {/* Username Section */}
-        <ProfileSectionCard title="USERNAME" colors={colors}>
+        <ProfileSectionCard title={t('profile.username_section')} colors={colors}>
           <View style={{ padding: 16, gap: 12 }}>
             <GameVaultTextField
               value={username}
               onChangeText={setUsername}
-              placeholder="Enter username"
+              placeholder={t('profile.enter_username')}
               leadingIcon="person-outline"
               autoCapitalize="none"
             />
             <GradientButton
-              text="UPDATE USERNAME"
+              text={t('profile.update_username')}
               onPress={() => saveUsername(userId)}
               isLoading={isLoading}
             />
@@ -113,16 +115,16 @@ export function ProfileScreen({ onLogout }: ProfileScreenProps) {
         <View style={{ height: 12 }} />
 
         {/* Password Section */}
-        <ProfileSectionCard title="CHANGE PASSWORD" colors={colors}>
+        <ProfileSectionCard title={t('profile.change_password_section')} colors={colors}>
           <View style={{ padding: 16, gap: 12 }}>
             <View>
               <Text style={[Typography.labelMedium, { color: colors.textSecondary, marginBottom: 6 }]}>
-                Current Password
+                {t('profile.current_password')}
               </Text>
               <GameVaultTextField
                 value={currentPassword}
                 onChangeText={setCurrentPassword}
-                placeholder="Enter current password"
+                placeholder={t('profile.enter_current_password')}
                 leadingIcon="lock-closed-outline"
                 isPassword
                 isPasswordVisible={isCurrentPasswordVisible}
@@ -136,7 +138,7 @@ export function ProfileScreen({ onLogout }: ProfileScreenProps) {
               <GameVaultTextField
                 value={newPassword}
                 onChangeText={setNewPassword}
-                placeholder="Min. 6 characters"
+                placeholder={t('profile.min_6_chars')}
                 leadingIcon="lock-closed-outline"
                 isPassword
                 isPasswordVisible={isNewPasswordVisible}
@@ -145,12 +147,12 @@ export function ProfileScreen({ onLogout }: ProfileScreenProps) {
             </View>
             <View>
               <Text style={[Typography.labelMedium, { color: colors.textSecondary, marginBottom: 6 }]}>
-                Confirm New Password
+                {t('profile.confirm_new_password')}
               </Text>
               <GameVaultTextField
                 value={confirmNewPassword}
                 onChangeText={setConfirmNewPassword}
-                placeholder="Repeat new password"
+                placeholder={t('profile.repeat_new_password')}
                 leadingIcon="lock-closed-outline"
                 isPassword
                 isPasswordVisible={isConfirmPasswordVisible}
@@ -161,7 +163,7 @@ export function ProfileScreen({ onLogout }: ProfileScreenProps) {
               <PasswordStrengthIndicator password={newPassword} />
             )}
             <GradientButton
-              text="UPDATE PASSWORD"
+              text={t('profile.update_password')}
               onPress={() => savePassword(userId)}
               isLoading={isLoading}
             />
@@ -177,7 +179,7 @@ export function ProfileScreen({ onLogout }: ProfileScreenProps) {
         >
           <Ionicons name="log-out-outline" size={18} color={colors.textSecondary} />
           <Text style={[Typography.labelLarge, { color: colors.textSecondary, marginLeft: 8, letterSpacing: 1 }]}>
-            LOGOUT
+            {t('profile.logout')}
           </Text>
         </TouchableOpacity>
 
@@ -196,7 +198,7 @@ export function ProfileScreen({ onLogout }: ProfileScreenProps) {
         >
           <View style={[styles.imagePickerSheet, { backgroundColor: colors.card }]}>
             <Text style={[Typography.titleMedium, { color: colors.textPrimary, fontWeight: '700', marginBottom: 16 }]}>
-              Change Profile Picture
+              {t('profile.change_profile_picture')}
             </Text>
 
             <TouchableOpacity
@@ -206,10 +208,10 @@ export function ProfileScreen({ onLogout }: ProfileScreenProps) {
               <Ionicons name="camera" size={24} color={colors.accentSecondary} />
               <View style={{ marginLeft: 12 }}>
                 <Text style={[Typography.titleMedium, { color: colors.textPrimary, fontWeight: '700' }]}>
-                  Take Photo
+                  {t('profile.take_photo')}
                 </Text>
                 <Text style={[Typography.bodySmall, { color: colors.textMuted }]}>
-                  Use your camera
+                  {t('profile.use_camera')}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -223,10 +225,10 @@ export function ProfileScreen({ onLogout }: ProfileScreenProps) {
               <Ionicons name="images" size={24} color={colors.accent} />
               <View style={{ marginLeft: 12 }}>
                 <Text style={[Typography.titleMedium, { color: colors.textPrimary, fontWeight: '700' }]}>
-                  Choose from Gallery
+                  {t('profile.choose_gallery')}
                 </Text>
                 <Text style={[Typography.bodySmall, { color: colors.textMuted }]}>
-                  Pick from your photos
+                  {t('profile.pick_photos')}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -235,7 +237,9 @@ export function ProfileScreen({ onLogout }: ProfileScreenProps) {
               onPress={() => setShowImagePicker(false)}
               style={{ marginTop: 16, alignItems: 'center' }}
             >
-              <Text style={[Typography.labelMedium, { color: colors.textSecondary }]}>Cancel</Text>
+              <Text style={[Typography.labelMedium, { color: colors.textSecondary }]}>
+                {t('profile.cancel')}
+              </Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -254,6 +258,7 @@ function AvatarSection({ profilePictureUri, username, level, tier, onEditClick, 
   onEditClick: () => void;
   colors: any;
 }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.avatarSection}>
       <View>
@@ -293,7 +298,7 @@ function AvatarSection({ profilePictureUri, username, level, tier, onEditClick, 
 
       <View style={[styles.levelBadge, { backgroundColor: colors.accent + '33', borderColor: colors.accent + '80' }]}>
         <Text style={[Typography.labelSmall, { color: colors.accent, fontWeight: '700' }]}>
-          LVL {level}  •  {tier}
+          {t('profile.lvl_tier', { level, tier })}
         </Text>
       </View>
     </View>

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { AuthRepository } from '../data/repository/AuthRepository';
 import { UserEntity } from '../data/db/entities';
 import { useAppStore } from './useAppStore';
+import i18n from '../locales/i18n';
 
 // ─── Login ────────────────────────────────────────────────────────────────────
 
@@ -34,11 +35,11 @@ export const useLoginStore = create<LoginState>((set, get) => ({
   login: async (onSuccess) => {
     const { emailOrUsername, password } = get();
     if (!emailOrUsername.trim()) {
-      set({ errorMessage: 'Enter your email or username' });
+      set({ errorMessage: i18n.t('auth.enter_email_or_username') });
       return;
     }
     if (!password) {
-      set({ errorMessage: 'Enter your password' });
+      set({ errorMessage: i18n.t('auth.enter_password') });
       return;
     }
     set({ isLoading: true, errorMessage: null });
@@ -48,7 +49,7 @@ export const useLoginStore = create<LoginState>((set, get) => ({
       set({ isLoading: false });
       onSuccess();
     } else {
-      set({ isLoading: false, errorMessage: 'Invalid email or password' });
+      set({ isLoading: false, errorMessage: i18n.t('auth.invalid_credentials') });
     }
   },
 
@@ -99,13 +100,13 @@ export const useRegisterStore = create<RegisterState>((set, get) => ({
 
   register: async (onSuccess) => {
     const { username, email, password, confirmPassword } = get();
-    if (!username.trim()) { set({ errorMessage: 'Enter a username' }); return; }
-    if (username.length < 3) { set({ errorMessage: 'Username must be at least 3 characters' }); return; }
+    if (!username.trim()) { set({ errorMessage: i18n.t('auth.enter_username') }); return; }
+    if (username.length < 3) { set({ errorMessage: i18n.t('auth.username_min_length') }); return; }
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      set({ errorMessage: 'Enter a valid email address' }); return;
+      set({ errorMessage: i18n.t('auth.invalid_email') }); return;
     }
-    if (password.length < 6) { set({ errorMessage: 'Password must be at least 6 characters' }); return; }
-    if (password !== confirmPassword) { set({ errorMessage: 'Passwords do not match' }); return; }
+    if (password.length < 6) { set({ errorMessage: i18n.t('auth.password_min_length') }); return; }
+    if (password !== confirmPassword) { set({ errorMessage: i18n.t('auth.passwords_do_not_match') }); return; }
 
     set({ isLoading: true, errorMessage: null });
     const result = await AuthRepository.register(username.trim(), email.trim().toLowerCase(), password);
@@ -114,9 +115,9 @@ export const useRegisterStore = create<RegisterState>((set, get) => ({
       set({ isLoading: false });
       onSuccess();
     } else if (result.type === 'EmailAlreadyExists') {
-      set({ isLoading: false, errorMessage: 'This email is already registered' });
+      set({ isLoading: false, errorMessage: i18n.t('auth.email_taken') });
     } else {
-      set({ isLoading: false, errorMessage: 'This username is already taken' });
+      set({ isLoading: false, errorMessage: i18n.t('auth.username_taken') });
     }
   },
 
@@ -191,35 +192,35 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
 
   saveUsername: async (userId) => {
     const { username, profilePictureUri } = get();
-    if (!username.trim()) { set({ errorMessage: 'Username cannot be empty' }); return; }
-    if (username.length < 3) { set({ errorMessage: 'Username must be at least 3 characters' }); return; }
+    if (!username.trim()) { set({ errorMessage: i18n.t('profile_errors.username_empty') }); return; }
+    if (username.length < 3) { set({ errorMessage: i18n.t('profile_errors.username_min_length') }); return; }
     set({ isLoading: true });
     const result = await AuthRepository.updateProfile(userId, username.trim(), profilePictureUri);
     if (result.type === 'Success') {
-      set({ isLoading: false, successMessage: 'Profile updated successfully!' });
+      set({ isLoading: false, successMessage: i18n.t('profile_errors.update_success') });
       await get().loadUser(userId);
     } else if (result.type === 'UsernameAlreadyExists') {
-      set({ isLoading: false, errorMessage: 'This username is already taken' });
+      set({ isLoading: false, errorMessage: i18n.t('profile_errors.username_taken') });
     } else {
-      set({ isLoading: false, errorMessage: 'User not found' });
+      set({ isLoading: false, errorMessage: i18n.t('profile_errors.user_not_found') });
     }
   },
 
   savePassword: async (userId) => {
     const { currentPassword, newPassword, confirmNewPassword } = get();
-    if (!currentPassword) { set({ errorMessage: 'Enter your current password' }); return; }
-    if (newPassword.length < 6) { set({ errorMessage: 'Password must be at least 6 characters' }); return; }
-    if (newPassword !== confirmNewPassword) { set({ errorMessage: 'Passwords do not match' }); return; }
-    if (currentPassword === newPassword) { set({ errorMessage: 'New password must be different' }); return; }
+    if (!currentPassword) { set({ errorMessage: i18n.t('profile_errors.enter_current_password_error') }); return; }
+    if (newPassword.length < 6) { set({ errorMessage: i18n.t('profile_errors.password_min_length') }); return; }
+    if (newPassword !== confirmNewPassword) { set({ errorMessage: i18n.t('profile_errors.passwords_do_not_match') }); return; }
+    if (currentPassword === newPassword) { set({ errorMessage: i18n.t('profile_errors.new_password_same') }); return; }
     set({ isLoading: true });
     const result = await AuthRepository.updatePassword(userId, currentPassword, newPassword);
     if (result.type === 'Success') {
       set({ isLoading: false, currentPassword: '', newPassword: '', confirmNewPassword: '',
-        successMessage: 'Password updated successfully!' });
+        successMessage: i18n.t('profile_errors.password_update_success') });
     } else if (result.type === 'WrongCurrentPassword') {
-      set({ isLoading: false, errorMessage: 'Current password is incorrect' });
+      set({ isLoading: false, errorMessage: i18n.t('profile_errors.wrong_current_password') });
     } else {
-      set({ isLoading: false, errorMessage: 'User not found' });
+      set({ isLoading: false, errorMessage: i18n.t('profile_errors.user_not_found') });
     }
   },
 

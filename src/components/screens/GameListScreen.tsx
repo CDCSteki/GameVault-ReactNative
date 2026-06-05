@@ -7,6 +7,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme/ThemeContext';
 import { Typography } from '../../theme/typography';
 import { BadgeChip } from '../shared/BadgeChip';
@@ -21,6 +22,7 @@ interface GameListScreenProps {
 }
 
 export function GameListScreen({ listType, onGameClick, onBackClick }: GameListScreenProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { title, games, isLoading, errorMessage, pageSize, loadGames, onPageSizeChange, retry } =
@@ -30,7 +32,6 @@ export function GameListScreen({ listType, onGameClick, onBackClick }: GameListS
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Top Bar */}
       <LinearGradient
         colors={[colors.accent + '40', colors.background]}
         style={[styles.topBar, { paddingTop: insets.top + 8 }]}
@@ -62,12 +63,12 @@ export function GameListScreen({ listType, onGameClick, onBackClick }: GameListS
             onPress={() => retry(listType)}
             style={[styles.retryBtn, { backgroundColor: colors.accent }]}
           >
-            <Text style={[Typography.labelMedium, { color: colors.textPrimary }]}>Retry</Text>
+            <Text style={[Typography.labelMedium, { color: colors.textPrimary }]}>{t('game_list.retry')}</Text>
           </TouchableOpacity>
         </View>
       ) : games.length === 0 ? (
         <View style={styles.center}>
-          <Text style={[Typography.bodyMedium, { color: colors.textMuted }]}>No results found</Text>
+          <Text style={[Typography.bodyMedium, { color: colors.textMuted }]}>{t('game_list.no_results')}</Text>
         </View>
       ) : (
         <FlatList
@@ -101,14 +102,15 @@ export function GameListScreen({ listType, onGameClick, onBackClick }: GameListS
 function PageSizeSelector({ currentSize, totalShown, onSizeChange, colors }: {
   currentSize: number; totalShown: number; onSizeChange: (s: number) => void; colors: any;
 }) {
+  const { t } = useTranslation();
   const options = [10, 20, 40];
   return (
     <View style={styles.pageSizeContainer}>
       <Text style={[Typography.labelSmall, { color: colors.accent, letterSpacing: 1 }]}>
-        Showing {totalShown} titles
+        {t('game_list.showing_titles', { count: totalShown })}
       </Text>
       <View style={styles.pageSizeRight}>
-        <Text style={[Typography.labelSmall, { color: colors.textMuted }]}>Show:</Text>
+        <Text style={[Typography.labelSmall, { color: colors.textMuted }]}>{t('game_list.show')}</Text>
         {options.map((size) => {
           const isSelected = currentSize === size;
           return (

@@ -6,19 +6,21 @@ import {
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme/ThemeContext';
 import { Typography } from '../../theme/typography';
 import { GameVaultTopBar } from '../shared/GameVaultTopBar';
 import { BadgeChip } from '../shared/BadgeChip';
 import { useSearchStore, SearchFilters } from '../../store/useSearchStore';
 import { GameDto } from '../../data/remote/dto/GameDto';
-import { formatRating, extractYear } from '../../utils/formatters';
+import { formatRating } from '../../utils/formatters';
 
 interface SearchScreenProps {
   onGameClick: (gameId: number) => void;
 }
 
 export function SearchScreen({ onGameClick }: SearchScreenProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const {
     query, searchResults, defaultGames, searchHistory,
@@ -42,13 +44,12 @@ export function SearchScreen({ onGameClick }: SearchScreenProps) {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <GameVaultTopBar />
 
-      {/* Search Field */}
       <View style={[styles.searchField, { borderColor: colors.border, backgroundColor: colors.card }]}>
         <Ionicons name="search" size={20} color={colors.textMuted} />
         <TextInput
           value={query}
           onChangeText={setQuery}
-          placeholder="Search titles, genres…"
+          placeholder={t('search.search_placeholder')}
           placeholderTextColor={colors.textMuted}
           style={[Typography.bodyMedium, { flex: 1, color: colors.textPrimary, marginHorizontal: 8 }]}
           returnKeyType="search"
@@ -62,7 +63,6 @@ export function SearchScreen({ onGameClick }: SearchScreenProps) {
         )}
       </View>
 
-      {/* Filter Button */}
       <TouchableOpacity onPress={toggleFilterSheet} style={styles.filterButton} activeOpacity={0.85}>
         <LinearGradient
           colors={[colors.accent, colors.accentSecondary]}
@@ -72,7 +72,7 @@ export function SearchScreen({ onGameClick }: SearchScreenProps) {
         >
           <Ionicons name="options" size={18} color={colors.textPrimary} />
           <Text style={[Typography.labelLarge, { color: colors.textPrimary, marginLeft: 8, letterSpacing: 1 }]}>
-            {hasActiveFilters ? 'FILTER (ACTIVE)' : 'FILTER'}
+            {hasActiveFilters ? t('search.filter_active') : t('search.filter')}
           </Text>
         </LinearGradient>
       </TouchableOpacity>
@@ -83,7 +83,6 @@ export function SearchScreen({ onGameClick }: SearchScreenProps) {
         </Text>
       )}
 
-      {/* List */}
       <View style={{ flex: 1 }}>
         <FlatList
           data={displayList}
@@ -103,10 +102,10 @@ export function SearchScreen({ onGameClick }: SearchScreenProps) {
               {displayList.length > 0 && (
                 <View style={{ paddingHorizontal: 16, paddingVertical: 8 }}>
                   <Text style={[Typography.titleLarge, { color: colors.textPrimary, fontWeight: '700' }]}>
-                    {isDefaultState ? 'Trending Suggestions' : 'Search Results'}
+                    {isDefaultState ? t('search.trending_suggestions') : t('search.search_results')}
                   </Text>
                   <Text style={[Typography.labelSmall, { color: colors.accent, letterSpacing: 1 }]}>
-                    {displayList.length} TITLES FOUND
+                    {t('search.titles_found', { count: displayList.length })}
                   </Text>
                 </View>
               )}
@@ -114,7 +113,7 @@ export function SearchScreen({ onGameClick }: SearchScreenProps) {
                 <View style={styles.emptyState}>
                   <Ionicons name="search" size={64} color={colors.textMuted} />
                   <Text style={[Typography.titleMedium, { color: colors.textMuted, marginTop: 16 }]}>
-                    No results found
+                    {t('search.no_results')}
                   </Text>
                 </View>
               )}
@@ -133,7 +132,6 @@ export function SearchScreen({ onGameClick }: SearchScreenProps) {
         )}
       </View>
 
-      {/* Filter Sheet */}
       {isFilterSheetVisible && (
         <FilterBottomSheet
           currentFilters={filters}
@@ -150,14 +148,17 @@ export function SearchScreen({ onGameClick }: SearchScreenProps) {
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function SearchHistorySection({ history, onHistoryClick, onDeleteItem, onClearAll, colors }: any) {
+  const { t } = useTranslation();
   return (
     <View style={{ padding: 16 }}>
       <View style={styles.historyHeader}>
         <Text style={[Typography.titleMedium, { color: colors.textPrimary, fontWeight: '700' }]}>
-          Recent Searches
+          {t('search.recent_searches')}
         </Text>
         <TouchableOpacity onPress={onClearAll}>
-          <Text style={[Typography.labelSmall, { color: colors.accent, letterSpacing: 1 }]}>CLEAR ALL</Text>
+          <Text style={[Typography.labelSmall, { color: colors.accent, letterSpacing: 1 }]}>
+            {t('search.clear_all')}
+          </Text>
         </TouchableOpacity>
       </View>
       {history.map((item: any) => (
@@ -236,6 +237,7 @@ function SearchResultCard({ game, onClick, colors }: { game: GameDto; onClick: (
 }
 
 function FilterBottomSheet({ currentFilters, onApply, onDismiss, onClear, colors }: any) {
+  const { t } = useTranslation();
   const [selectedGenre, setSelectedGenre] = React.useState<string | null>(currentFilters.genre);
   const [selectedPlatform, setSelectedPlatform] = React.useState<string | null>(currentFilters.platform);
   const [selectedOrdering, setSelectedOrdering] = React.useState<string | null>(currentFilters.ordering);
@@ -246,29 +248,28 @@ function FilterBottomSheet({ currentFilters, onApply, onDismiss, onClear, colors
     { id: '18', name: 'PS4' }, { id: '1', name: 'Xbox' }, { id: '7', name: 'Nintendo' },
   ];
   const orderings = [
-    { value: '-rating', label: 'Best Rated' },
-    { value: '-released', label: 'Newest' },
-    { value: '-added', label: 'Most Popular' },
+    { value: '-rating', label: t('search.order_best_rated') },
+    { value: '-released', label: t('search.order_newest') },
+    { value: '-added', label: t('search.order_most_popular') },
   ];
 
   return (
     <Modal transparent animationType="slide" onRequestClose={onDismiss}>
       <TouchableOpacity style={styles.modalOverlay} onPress={onDismiss} activeOpacity={1} />
       <View style={[styles.filterSheet, { backgroundColor: colors.backgroundSecondary }]}>
-        {/* Handle */}
         <View style={[styles.sheetHandle, { backgroundColor: colors.border }]} />
 
         <ScrollView showsVerticalScrollIndicator={false}>
           <Text style={[Typography.headlineSmall, { color: colors.textPrimary, fontWeight: '700', marginBottom: 20 }]}>
-            Filter Games
+            {t('search.filter_games')}
           </Text>
 
-          <FilterSectionTitle title="Genre" colors={colors} />
+          <FilterSectionTitle title={t('search.genre')} colors={colors} />
           <View style={styles.filterChipsRow}>
             {genres.map((g) => (
               <FilterChip
                 key={g}
-                text={g.charAt(0).toUpperCase() + g.slice(1)}
+                text={t(`search.genre_${g}`)}
                 isSelected={selectedGenre === g}
                 onPress={() => setSelectedGenre(selectedGenre === g ? null : g)}
                 colors={colors}
@@ -277,7 +278,7 @@ function FilterBottomSheet({ currentFilters, onApply, onDismiss, onClear, colors
           </View>
 
           <View style={{ height: 16 }} />
-          <FilterSectionTitle title="Platform" colors={colors} />
+          <FilterSectionTitle title={t('search.platform')} colors={colors} />
           <View style={styles.filterChipsRow}>
             {platforms.map((p) => (
               <FilterChip
@@ -291,7 +292,7 @@ function FilterBottomSheet({ currentFilters, onApply, onDismiss, onClear, colors
           </View>
 
           <View style={{ height: 16 }} />
-          <FilterSectionTitle title="Sort By" colors={colors} />
+          <FilterSectionTitle title={t('search.sort_by')} colors={colors} />
           <View style={styles.filterChipsRow}>
             {orderings.map((o) => (
               <FilterChip
@@ -311,13 +312,13 @@ function FilterBottomSheet({ currentFilters, onApply, onDismiss, onClear, colors
               style={[styles.filterClearBtn, { borderColor: colors.border }]}
               onPress={() => { setSelectedGenre(null); setSelectedPlatform(null); setSelectedOrdering(null); onClear(); }}
             >
-              <Text style={[Typography.labelMedium, { color: colors.textSecondary }]}>CLEAR</Text>
+              <Text style={[Typography.labelMedium, { color: colors.textSecondary }]}>{t('search.clear')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.filterApplyBtn, { backgroundColor: colors.accent }]}
               onPress={() => onApply({ genre: selectedGenre, platform: selectedPlatform, ordering: selectedOrdering, year: null, minRating: null })}
             >
-              <Text style={[Typography.labelMedium, { color: colors.textPrimary }]}>APPLY</Text>
+              <Text style={[Typography.labelMedium, { color: colors.textPrimary }]}>{t('search.apply')}</Text>
             </TouchableOpacity>
           </View>
           <View style={{ height: 40 }} />

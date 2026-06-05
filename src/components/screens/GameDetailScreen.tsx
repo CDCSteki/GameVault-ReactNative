@@ -7,6 +7,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme/ThemeContext';
 import { Typography } from '../../theme/typography';
 import { useGameDetailStore } from '../../store/useGameDetailStore';
@@ -19,6 +20,7 @@ interface GameDetailScreenProps {
 }
 
 export function GameDetailScreen({ gameId, onBackClick }: GameDetailScreenProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const {
@@ -33,8 +35,8 @@ export function GameDetailScreen({ gameId, onBackClick }: GameDetailScreenProps)
 
   useEffect(() => {
     if (snackbarMessage) {
-      const t = setTimeout(dismissSnackbar, 3000);
-      return () => clearTimeout(t);
+      const timer = setTimeout(dismissSnackbar, 3000);
+      return () => clearTimeout(timer);
     }
   }, [snackbarMessage]);
 
@@ -57,7 +59,7 @@ export function GameDetailScreen({ gameId, onBackClick }: GameDetailScreenProps)
           onPress={() => retry(gameId)}
           style={[styles.retryBtn, { backgroundColor: colors.accent }]}
         >
-          <Text style={[Typography.labelMedium, { color: colors.textPrimary }]}>Retry</Text>
+          <Text style={[Typography.labelMedium, { color: colors.textPrimary }]}>{t('game_detail.retry')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -111,8 +113,8 @@ export function GameDetailScreen({ gameId, onBackClick }: GameDetailScreenProps)
               style={styles.actionBtnGradient}
             >
               <Ionicons name={isInCollection ? 'checkmark-circle' : 'add'} size={16} color={colors.textPrimary} />
-              <Text style={[Typography.labelSmall, { color: colors.textPrimary, fontWeight: '700', marginLeft: 6 }]}>
-                {isInCollection ? 'IN COLLECTION' : 'ADD TO COLLECTION'}
+              <Text numberOfLines={1} adjustsFontSizeToFit style={[Typography.labelSmall, { color: colors.textPrimary, fontWeight: '700', marginLeft: 6 , flexShrink: 1,}]}>
+                {isInCollection ? t('game_detail.in_collection') : t('game_detail.add_to_collection')}
               </Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -135,14 +137,14 @@ export function GameDetailScreen({ gameId, onBackClick }: GameDetailScreenProps)
               size={16}
               color={isInCollection ? colors.textMuted + '4D' : isInWishlist ? colors.statusYellow : colors.textSecondary}
             />
-            <Text style={[
+            <Text numberOfLines={1} adjustsFontSizeToFit style={[
               Typography.labelSmall,
               {
                 color: isInCollection ? colors.textMuted + '4D' : isInWishlist ? colors.statusYellow : colors.textSecondary,
-                fontWeight: '700', marginLeft: 6,
+                fontWeight: '700', marginLeft: 6, flexShrink: 1
               },
             ]}>
-              {isInCollection ? 'IN COLLECTION' : 'WISHLIST'}
+              {isInCollection ? t('game_detail.in_collection') : t('game_detail.wishlist')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -151,12 +153,18 @@ export function GameDetailScreen({ gameId, onBackClick }: GameDetailScreenProps)
         {isInCollection && (
           <View style={[styles.section, { paddingHorizontal: 16 }]}>
             <Text style={[Typography.labelSmall, { color: colors.textMuted, letterSpacing: 1, marginBottom: 8 }]}>
-              PLAY STATUS
+              {t('game_detail.play_status')}
             </Text>
             <View style={styles.statusRow}>
               {(['NOT_PLAYED', 'PLAYING', 'PLAYED'] as PlayStatus[]).map((s) => {
                 const isSelected = playStatus === s;
                 const statusColor = s === 'NOT_PLAYED' ? colors.textMuted : s === 'PLAYING' ? colors.accentSecondary : colors.statusGreen;
+                
+                const statusLabel = 
+                  s === 'NOT_PLAYED' ? t('game_detail.not_played') : 
+                  s === 'PLAYING' ? t('game_detail.playing') : 
+                  t('game_detail.played');
+
                 return (
                   <TouchableOpacity
                     key={s}
@@ -174,7 +182,7 @@ export function GameDetailScreen({ gameId, onBackClick }: GameDetailScreenProps)
                       size={14} color={isSelected ? statusColor : colors.textMuted}
                     />
                     <Text style={[Typography.labelSmall, { color: isSelected ? statusColor : colors.textMuted, marginLeft: 4, fontWeight: isSelected ? '700' : '400' }]}>
-                      {s === 'NOT_PLAYED' ? 'Not Played' : s === 'PLAYING' ? 'Playing' : 'Played'}
+                      {statusLabel}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -186,13 +194,13 @@ export function GameDetailScreen({ gameId, onBackClick }: GameDetailScreenProps)
         {/* Info Grid */}
         <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
           <View style={styles.infoRow}>
-            <InfoItem label="DEVELOPER" value={gameDetail.developers?.[0]?.name ?? 'N/A'} colors={colors} />
-            <InfoItem label="RELEASE" value={formatReleaseDate(gameDetail.released)} colors={colors} />
+            <InfoItem label={t('game_detail.developer')} value={gameDetail.developers?.[0]?.name ?? t('game_detail.na')} colors={colors} />
+            <InfoItem label={t('game_detail.release')} value={formatReleaseDate(gameDetail.released) ?? t('game_detail.na')} colors={colors} />
           </View>
           <View style={{ height: 12 }} />
           <View style={styles.infoRow}>
-            <InfoItem label="PLATFORM" value={gameDetail.platforms?.slice(0, 3).map(p => p.platform.name).join(', ') ?? 'N/A'} colors={colors} />
-            <InfoItem label="PLAYTIME" value={toPlaytimeString(gameDetail.playtime)} colors={colors} />
+            <InfoItem label={t('game_detail.platform')} value={gameDetail.platforms?.slice(0, 3).map(p => p.platform.name).join(', ') ?? t('game_detail.na')} colors={colors} />
+            <InfoItem label={t('game_detail.playtime')} value={toPlaytimeString(gameDetail.playtime) ?? t('game_detail.na')} colors={colors} />
           </View>
         </View>
 
@@ -202,7 +210,7 @@ export function GameDetailScreen({ gameId, onBackClick }: GameDetailScreenProps)
             <View style={styles.sectionTitleRow}>
               <View style={[styles.sectionBar, { backgroundColor: colors.accentSecondary }]} />
               <Text style={[Typography.titleMedium, { color: colors.textPrimary, fontWeight: '700' }]}>
-                PC System Requirements
+                {t('game_detail.pc_requirements')}
               </Text>
             </View>
             {requirements.minimum && (
@@ -222,7 +230,7 @@ export function GameDetailScreen({ gameId, onBackClick }: GameDetailScreenProps)
         <View style={[styles.notesCard, { backgroundColor: colors.card, borderColor: colors.accent + '4D' }]}>
           <View style={styles.notesHeader}>
             <Text style={[Typography.titleMedium, { color: colors.textPrimary, fontWeight: '700' }]}>
-              Private Notes
+              {t('game_detail.private_notes')}
             </Text>
             <View style={styles.starsRow}>
               {[1, 2, 3, 4, 5].map((star) => (
@@ -244,7 +252,7 @@ export function GameDetailScreen({ gameId, onBackClick }: GameDetailScreenProps)
               style={[Typography.bodySmall, { color: userNotes ? colors.textSecondary : colors.textMuted }]}
               numberOfLines={3}
             >
-              {userNotes || 'Your private notes on this game…'}
+              {userNotes || t('game_detail.notes_empty')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -255,7 +263,7 @@ export function GameDetailScreen({ gameId, onBackClick }: GameDetailScreenProps)
             <View style={styles.sectionTitleRow}>
               <View style={[styles.sectionBar, { backgroundColor: colors.accent }]} />
               <Text style={[Typography.titleMedium, { color: colors.textPrimary, fontWeight: '700' }]}>
-                About the Game
+                {t('game_detail.about_game')}
               </Text>
             </View>
             <Text style={[Typography.bodyMedium, { color: colors.textSecondary }]} numberOfLines={6}>
@@ -268,7 +276,7 @@ export function GameDetailScreen({ gameId, onBackClick }: GameDetailScreenProps)
         {screenshots.length > 0 && (
           <View style={{ paddingVertical: 8 }}>
             <Text style={[Typography.titleMedium, { color: colors.textPrimary, fontWeight: '700', paddingHorizontal: 16, marginBottom: 8 }]}>
-              Screenshots
+              {t('game_detail.screenshots')}
             </Text>
             <FlatList
               data={screenshots.slice(0, 8)}
@@ -286,7 +294,7 @@ export function GameDetailScreen({ gameId, onBackClick }: GameDetailScreenProps)
         {/* User Sentiment */}
         <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
           <Text style={[Typography.labelSmall, { color: colors.textMuted, letterSpacing: 1, marginBottom: 8 }]}>
-            USER SENTIMENT
+            {t('game_detail.user_sentiment')}
           </Text>
           <View style={styles.sentimentRow}>
             <Text style={[Typography.headlineLarge, { color: colors.accentSecondary, fontWeight: '800' }]}>
@@ -324,12 +332,12 @@ export function GameDetailScreen({ gameId, onBackClick }: GameDetailScreenProps)
         <View style={styles.dialogOverlay}>
           <View style={[styles.dialog, { backgroundColor: colors.card }]}>
             <Text style={[Typography.titleMedium, { color: colors.textPrimary, fontWeight: '700', marginBottom: 12 }]}>
-              Private Notes
+              {t('game_detail.private_notes')}
             </Text>
             <TextInput
               value={userNotes}
               onChangeText={onNotesChange}
-              placeholder="Write your notes here…"
+              placeholder={t('game_detail.notes_placeholder')}
               placeholderTextColor={colors.textMuted}
               multiline
               style={[
@@ -340,13 +348,13 @@ export function GameDetailScreen({ gameId, onBackClick }: GameDetailScreenProps)
             />
             <View style={styles.dialogActions}>
               <TouchableOpacity onPress={toggleNotesDialog}>
-                <Text style={[Typography.labelMedium, { color: colors.textSecondary }]}>Cancel</Text>
+                <Text style={[Typography.labelMedium, { color: colors.textSecondary }]}>{t('game_detail.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => onSaveNotes(gameId)}
                 style={[styles.saveBtn, { backgroundColor: colors.accent }]}
               >
-                <Text style={[Typography.labelMedium, { color: colors.textPrimary }]}>Save</Text>
+                <Text style={[Typography.labelMedium, { color: colors.textPrimary }]}>{t('game_detail.save')}</Text>
               </TouchableOpacity>
             </View>
           </View>

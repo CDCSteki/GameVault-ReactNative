@@ -3,6 +3,7 @@ import { SearchRepository } from '../data/repository/SearchRepository';
 import { GameRepository } from '../data/repository/GameRepository';
 import { GameDto } from '../data/remote/dto/GameDto';
 import { SearchHistoryEntity } from '../data/db/entities';
+import i18n from '../locales/i18n';
 
 export interface SearchFilters {
   genre: string | null;
@@ -103,7 +104,6 @@ export const useSearchStore = create<SearchState>((set, get) => ({
       ordering: filters.ordering ?? undefined,
     });
 
-    // Refresh history after saving
     const history = await SearchRepository.getRecentSearches();
 
     set({
@@ -111,7 +111,7 @@ export const useSearchStore = create<SearchState>((set, get) => ({
       searchHistory: history,
       isLoading: false,
       hasSearched: true,
-      errorMessage: result.error ? 'Failed to load. Check your connection.' : null,
+      errorMessage: result.error ? i18n.t('search.error_failed_to_load') : null,
     });
   },
 

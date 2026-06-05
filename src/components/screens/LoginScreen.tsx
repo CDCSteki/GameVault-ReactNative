@@ -14,6 +14,7 @@ import { Typography } from '../../theme/typography';
 import { GameVaultTextField } from '../shared/GameVaultTextField';
 import { GradientButton } from '../shared/GradientButton';
 import { useLoginStore } from '../../store/useAuthStore';
+import { useTranslation } from 'react-i18next';
 
 interface LoginScreenProps {
   onLoginSuccess: () => void;
@@ -21,6 +22,7 @@ interface LoginScreenProps {
 }
 
 export function LoginScreen({ onLoginSuccess, onNavigateToRegister }: LoginScreenProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const {
     emailOrUsername, password,
@@ -64,17 +66,17 @@ export function LoginScreen({ onLoginSuccess, onNavigateToRegister }: LoginScree
                 { color: colors.textSecondary, textAlign: 'center', marginTop: 8, marginBottom: 36 },
               ]}
             >
-              Welcome, Hunter
+              {t('login.welcome')}
             </Text>
 
             {/* Email */}
             <Text style={[Typography.labelMedium, { color: colors.textSecondary, marginBottom: 8 }]}>
-              Email or Username
+              {t('login.email_username_txt')}
             </Text>
             <GameVaultTextField
               value={emailOrUsername}
               onChangeText={setEmailOrUsername}
-              placeholder="Enter your credentials"
+              placeholder={t('login.email_username_placeholder')}
               leadingIcon="person-outline"
               keyboardType="email-address"
               autoCapitalize="none"
@@ -85,7 +87,7 @@ export function LoginScreen({ onLoginSuccess, onNavigateToRegister }: LoginScree
 
             {/* Password */}
             <Text style={[Typography.labelMedium, { color: colors.textSecondary, marginBottom: 8 }]}>
-              Password
+              {t('login.password_txt')}
             </Text>
             <GameVaultTextField
               value={password}
@@ -115,7 +117,7 @@ export function LoginScreen({ onLoginSuccess, onNavigateToRegister }: LoginScree
 
             {/* Button */}
             <GradientButton
-              text="LOGIN"
+              text={t('login.login_btn')}
               onPress={() => login(onLoginSuccess)}
               isLoading={isLoading}
             />
@@ -125,16 +127,16 @@ export function LoginScreen({ onLoginSuccess, onNavigateToRegister }: LoginScree
             {/* Register link */}
             <View style={styles.registerRow}>
               <Text style={[Typography.bodySmall, { color: colors.textSecondary }]}>
-                Don't have an account?{' '}
+                {t('login.no_account')}
               </Text>
               <TouchableOpacity onPress={onNavigateToRegister}>
                 <Text
                   style={[
                     Typography.bodySmall,
-                    { color: colors.accent, fontWeight: '700' },
+                    { color: colors.accent, fontWeight: '700', paddingRight: 2 },
                   ]}
                 >
-                  Sign Up
+                  {t('login.sign_up_link')}
                 </Text>
               </TouchableOpacity>
             </View>

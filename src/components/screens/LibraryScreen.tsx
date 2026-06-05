@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme/ThemeContext';
 import { Typography } from '../../theme/typography';
 import { GameVaultTopBar } from '../shared/GameVaultTopBar';
@@ -21,6 +22,7 @@ interface LibraryScreenProps {
 }
 
 export function LibraryScreen({ onGameClick }: LibraryScreenProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const {
     activeTab, collectionFilter, wishlist, isLoading,
@@ -34,11 +36,11 @@ export function LibraryScreen({ onGameClick }: LibraryScreenProps) {
   const filteredCollection = getFilteredCollection();
 
   const emptyMessage = activeTab === 'COLLECTION'
-    ? collectionFilter === 'PLAYING' ? 'No games currently being played'
-    : collectionFilter === 'PLAYED' ? 'No played games yet'
-    : collectionFilter === 'NOT_PLAYED' ? 'No unplayed games'
-    : 'Your collection is empty.\nSearch for games to add!'
-    : 'Your wishlist is empty.\nAdd games you want to play!';
+    ? collectionFilter === 'PLAYING' ? t('library.empty_playing')
+    : collectionFilter === 'PLAYED' ? t('library.empty_played')
+    : collectionFilter === 'NOT_PLAYED' ? t('library.empty_not_played')
+    : t('library.empty_collection')
+    : t('library.empty_wishlist');
 
   const listData = activeTab === 'COLLECTION' ? filteredCollection : wishlist;
   const isEmpty = listData.length === 0;
@@ -72,7 +74,7 @@ export function LibraryScreen({ onGameClick }: LibraryScreenProps) {
                   },
                 ]}
               >
-                {tab === 'COLLECTION' ? 'MY COLLECTION' : 'WISHLIST'}
+                {tab === 'COLLECTION' ? t('library.tab_collection') : t('library.tab_wishlist')}
               </Text>
             </TouchableOpacity>
           );
@@ -110,10 +112,10 @@ export function LibraryScreen({ onGameClick }: LibraryScreenProps) {
                     },
                   ]}
                 >
-                  {filter === 'ALL' ? 'All'
-                    : filter === 'PLAYING' ? 'Playing'
-                    : filter === 'PLAYED' ? 'Played'
-                    : 'Not Played'}
+                  {filter === 'ALL' ? t('library.filter_all')
+                    : filter === 'PLAYING' ? t('library.filter_playing')
+                    : filter === 'PLAYED' ? t('library.filter_played')
+                    : t('library.filter_not_played')}
                 </Text>
               </TouchableOpacity>
             );
@@ -132,7 +134,7 @@ export function LibraryScreen({ onGameClick }: LibraryScreenProps) {
         <>
           {activeTab === 'COLLECTION' && (
             <Text style={[Typography.bodySmall, { color: colors.textMuted, paddingHorizontal: 16, paddingVertical: 4 }]}>
-              {filteredCollection.length} Games in library
+              {t('library.games_in_library', { count: filteredCollection.length })}
             </Text>
           )}
           <FlatList
@@ -171,6 +173,7 @@ function CollectionGameCard({ game, onClick, onPlayStatusChange, onRemove, color
   game: GameEntity; onClick: () => void;
   onPlayStatusChange: (s: PlayStatus) => void; onRemove: () => void; colors: any;
 }) {
+  const { t } = useTranslation();
   const [menuVisible, setMenuVisible] = React.useState(false);
   const currentStatus = game.playStatus as PlayStatus;
   const statusColor =
@@ -181,10 +184,11 @@ function CollectionGameCard({ game, onClick, onPlayStatusChange, onRemove, color
     currentStatus === 'NOT_PLAYED' ? 'radio-button-off-outline'
     : currentStatus === 'PLAYING' ? 'play-circle-outline'
     : 'checkmark-circle-outline';
+  
   const statusLabel =
-    currentStatus === 'NOT_PLAYED' ? 'Not Played'
-    : currentStatus === 'PLAYING' ? 'Playing'
-    : 'Played';
+    currentStatus === 'NOT_PLAYED' ? t('library.filter_not_played')
+    : currentStatus === 'PLAYING' ? t('library.filter_playing')
+    : t('library.filter_played');
 
   return (
     <TouchableOpacity
@@ -235,15 +239,15 @@ function CollectionGameCard({ game, onClick, onPlayStatusChange, onRemove, color
                 onPress={() => { setMenuVisible(false); onPlayStatusChange(s); }}
               >
                 <Text style={[Typography.bodyMedium, { color: colors.textPrimary }]}>
-                  {s === 'NOT_PLAYED' ? 'Mark as Not Played'
-                    : s === 'PLAYING' ? 'Mark as Playing'
-                    : 'Mark as Played'}
+                  {s === 'NOT_PLAYED' ? t('library.mark_not_played')
+                    : s === 'PLAYING' ? t('library.mark_playing')
+                    : t('library.mark_played')}
                 </Text>
               </TouchableOpacity>
             ))}
             <View style={{ height: 1, backgroundColor: colors.border + '4D' }} />
             <TouchableOpacity style={styles.menuItem} onPress={() => { setMenuVisible(false); onRemove(); }}>
-              <Text style={[Typography.bodyMedium, { color: colors.statusRed }]}>Remove</Text>
+              <Text style={[Typography.bodyMedium, { color: colors.statusRed }]}>{t('library.remove')}</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -258,6 +262,7 @@ function WishlistGameCard({ game, onClick, onMoveToCollection, onRemove, colors 
   game: GameEntity; onClick: () => void;
   onMoveToCollection: () => void; onRemove: () => void; colors: any;
 }) {
+  const { t } = useTranslation();
   const [menuVisible, setMenuVisible] = React.useState(false);
 
   return (
@@ -282,7 +287,7 @@ function WishlistGameCard({ game, onClick, onMoveToCollection, onRemove, colors 
           style={[styles.addToCollBtn, { backgroundColor: colors.accent + '26', borderColor: colors.accent }]}
         >
           <Text style={[Typography.labelSmall, { color: colors.accent, fontWeight: '600' }]}>
-            + Add to Collection
+            {t('library.btn_add_to_collection')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -295,11 +300,11 @@ function WishlistGameCard({ game, onClick, onMoveToCollection, onRemove, colors 
         <TouchableOpacity style={styles.menuOverlay} onPress={() => setMenuVisible(false)}>
           <View style={[styles.menuSheet, { backgroundColor: colors.card }]}>
             <TouchableOpacity style={styles.menuItem} onPress={() => { setMenuVisible(false); onMoveToCollection(); }}>
-              <Text style={[Typography.bodyMedium, { color: colors.textPrimary }]}>Add to Collection</Text>
+              <Text style={[Typography.bodyMedium, { color: colors.textPrimary }]}>{t('library.add_to_collection')}</Text>
             </TouchableOpacity>
             <View style={{ height: 1, backgroundColor: colors.border + '4D' }} />
             <TouchableOpacity style={styles.menuItem} onPress={() => { setMenuVisible(false); onRemove(); }}>
-              <Text style={[Typography.bodyMedium, { color: colors.statusRed }]}>Remove</Text>
+              <Text style={[Typography.bodyMedium, { color: colors.statusRed }]}>{t('library.remove')}</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>

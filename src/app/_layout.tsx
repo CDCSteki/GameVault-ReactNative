@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { View } from 'react-native';
+import '../locales/i18n';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
@@ -9,6 +9,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider } from '../theme/ThemeContext';
 import { useAppStore } from '../store/useAppStore';
 import { getDatabase } from '../data/db/database';
+import { getThemeColors } from '../theme/colors'; // <-- 1. Import adăugat
 
 SplashScreen.preventAutoHideAsync();
 
@@ -19,23 +20,23 @@ export default function RootLayout() {
   const router = useRouter();
   const segments = useSegments();
 
-  // Init DB + preferences on startup
+  // <-- 2. Preluarea culorilor temei curente
+  const themeColors = getThemeColors(appTheme); 
+
   useEffect(() => {
     async function boot() {
-      await getDatabase();   // initializes SQLite tables
-      await initialize();    // loads prefs (theme, language, auth)
+      await getDatabase();   
+      await initialize();    
     }
     boot();
   }, []);
 
-  // Hide splash once ready
   useEffect(() => {
     if (isInitialized && fontsLoaded) {
       SplashScreen.hideAsync();
     }
   }, [isInitialized, fontsLoaded]);
 
-  // Auth guard — redirect based on login state
   useEffect(() => {
     if (!isInitialized) return;
 
@@ -49,15 +50,22 @@ export default function RootLayout() {
   }, [isLoggedIn, isInitialized, segments]);
 
   if (!isInitialized || !fontsLoaded) {
-    return null; // Keep native splash visible
+    return null; 
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    // <-- 3. Adăugarea background-ului pe containerul root
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: themeColors.background }}>
       <SafeAreaProvider>
         <ThemeProvider theme={appTheme}>
           <StatusBar style="light" />
-          <Stack screenOptions={{ headerShown: false }}>
+          <Stack 
+            screenOptions={{ 
+              headerShown: false,
+              // <-- 4. Setarea culorii de conținut pe stiva de navigare
+              contentStyle: { backgroundColor: themeColors.background } 
+            }}
+          >
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="auth/login" />
             <Stack.Screen name="auth/register" />

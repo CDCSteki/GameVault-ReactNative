@@ -7,15 +7,14 @@ import {
   FlatList,
   StyleSheet,
   ActivityIndicator,
-  ImageBackground,
   Dimensions,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme/ThemeContext';
 import { Typography } from '../../theme/typography';
-import { GameVaultTopBar } from '../shared/GameVaultTopBar';
 import { useHomeStore } from '../../store/useHomeStore';
 import { useAppStore } from '../../store/useAppStore';
 import { GameDto } from '../../data/remote/dto/GameDto';
@@ -29,6 +28,7 @@ interface HomeScreenProps {
 }
 
 export function HomeScreen({ onGameClick, onViewAllClick }: HomeScreenProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const { userId } = useAppStore();
   const {
@@ -61,7 +61,7 @@ export function HomeScreen({ onGameClick, onViewAllClick }: HomeScreenProps) {
         {popularThisYear.length > 0 && (
           <>
             <SectionHeader
-              title="Popular This Year"
+              title={t('home.popular_this_year')}
               iconName="trending-up"
               onViewAll={() => onViewAllClick('this_year')}
               colors={colors}
@@ -75,7 +75,8 @@ export function HomeScreen({ onGameClick, onViewAllClick }: HomeScreenProps) {
               renderItem={({ item, index }) => (
                 <GameCardMedium
                   game={item}
-                  badge={index === 0 ? 'ONLINE' : index === 1 ? 'TRENDING' : undefined}
+                  badge={index === 0 ? t('home.badge_online') : index === 1 ? t('home.badge_trending') : undefined}
+                  badgeType={index === 0 ? 'ONLINE' : 'TRENDING'}
                   onClick={() => onGameClick(item.id)}
                   colors={colors}
                 />
@@ -89,7 +90,7 @@ export function HomeScreen({ onGameClick, onViewAllClick }: HomeScreenProps) {
         {allTimeLegends.length > 0 && (
           <>
             <SectionHeader
-              title="All-Time Legends"
+              title={t('home.all_time_legends')}
               iconName="trophy"
               onViewAll={() => onViewAllClick('all_time')}
               colors={colors}
@@ -107,7 +108,7 @@ export function HomeScreen({ onGameClick, onViewAllClick }: HomeScreenProps) {
         {(indieGems.length > 0 || competitive.length > 0) && (
           <>
             <SectionHeader
-              title="Discover"
+              title={t('home.discover')}
               iconName="star"
               onViewAll={null}
               colors={colors}
@@ -137,6 +138,7 @@ export function HomeScreen({ onGameClick, onViewAllClick }: HomeScreenProps) {
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function HomeHeader({ username, colors }: { username: string; colors: any }) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   return (
     <LinearGradient
@@ -152,12 +154,12 @@ function HomeHeader({ username, colors }: { username: string; colors: any }) {
         </Text>
       </View>
       <View style={{ height: 16 }} />
-      <Text style={[Typography.headlineSmall, { color: colors.textSecondary }]}>Welcome,</Text>
+      <Text style={[Typography.headlineSmall, { color: colors.textSecondary }]}>{t('home.welcome')}</Text>
       <Text style={[Typography.headlineLarge, { color: colors.accent, fontWeight: '700' }]}>
         {username}
       </Text>
       <Text style={[Typography.bodySmall, { color: colors.textMuted, marginTop: 4 }]}>
-        Your next legendary adventure is just a click away.
+        {t('home.subtitle')}
       </Text>
     </LinearGradient>
   );
@@ -171,6 +173,7 @@ function SectionHeader({
   onViewAll: (() => void) | null;
   colors: any;
 }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.sectionHeader}>
       <View style={styles.sectionHeaderLeft}>
@@ -182,7 +185,7 @@ function SectionHeader({
       {onViewAll && (
         <TouchableOpacity onPress={onViewAll}>
           <Text style={[Typography.labelSmall, { color: colors.accent, letterSpacing: 1 }]}>
-            VIEW ALL
+            {t('home.view_all')}
           </Text>
         </TouchableOpacity>
       )}
@@ -191,10 +194,11 @@ function SectionHeader({
 }
 
 function GameCardMedium({
-  game, badge, onClick, colors,
+  game, badge, badgeType, onClick, colors,
 }: {
   game: GameDto;
   badge?: string;
+  badgeType?: string;
   onClick: () => void;
   colors: any;
 }) {
@@ -213,7 +217,7 @@ function GameCardMedium({
         <View
           style={[
             styles.badge,
-            { backgroundColor: badge === 'ONLINE' ? colors.accentSecondary : colors.accent },
+            { backgroundColor: badgeType === 'ONLINE' ? colors.accentSecondary : colors.accent },
           ]}
         >
           <Text style={[Typography.labelSmall, { color: colors.background, fontWeight: '700' }]}>
@@ -243,6 +247,7 @@ function AllTimeLegendCard({
   onClick: () => void;
   colors: any;
 }) {
+  const { t } = useTranslation();
   return (
     <TouchableOpacity
       onPress={onClick}
@@ -263,7 +268,7 @@ function AllTimeLegendCard({
       <View style={styles.legendContent}>
         <View style={[styles.hallOfFameBadge, { backgroundColor: colors.statusYellow + 'E6' }]}>
           <Text style={[Typography.labelSmall, { color: colors.background, fontWeight: '800' }]}>
-            HALL OF FAME
+            {t('home.hall_of_fame')}
           </Text>
         </View>
         <View style={{ height: 6 }} />
@@ -279,10 +284,10 @@ function AllTimeLegendCard({
 }
 
 const DISCOVER_CATEGORIES = [
-  { key: 'discover_indie',       label: 'Indie Gems',    symbol: '◈', colorKey: 'accent' },
-  { key: 'discover_competitive', label: 'Competitive',   symbol: '⚡', colorKey: 'accentSecondary' },
-  { key: 'discover_coop',        label: 'Co-Op',         symbol: '◎', colorKey: 'statusGreen' },
-  { key: 'discover_retro',       label: 'Retro',         symbol: '◀', colorKey: 'statusOrange' },
+  { key: 'discover_indie',       i18nKey: 'home.discover_indie',       symbol: '◈', colorKey: 'accent' },
+  { key: 'discover_competitive', i18nKey: 'home.discover_competitive', symbol: '⚡', colorKey: 'accentSecondary' },
+  { key: 'discover_coop',        i18nKey: 'home.discover_coop',        symbol: '◎', colorKey: 'statusGreen' },
+  { key: 'discover_retro',       i18nKey: 'home.discover_retro',       symbol: '◀', colorKey: 'statusOrange' },
 ];
 
 function DiscoverGrid({
@@ -295,6 +300,7 @@ function DiscoverGrid({
   onViewAllGenre: (route: string) => void;
   colors: any;
 }) {
+  const { t } = useTranslation();
   const gameMap: Record<string, GameDto[]> = {
     discover_indie: indieGames,
     discover_competitive: competitiveGames,
@@ -332,7 +338,7 @@ function DiscoverGrid({
                   <Text style={{ color, fontSize: 18 }}>{cat.symbol}</Text>
                 </View>
                 <Text style={[Typography.labelMedium, { color: colors.textPrimary, fontWeight: '600', marginTop: 8 }]}>
-                  {cat.label}
+                  {t(cat.i18nKey)}
                 </Text>
               </TouchableOpacity>
             );

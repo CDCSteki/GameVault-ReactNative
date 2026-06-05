@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { GameRepository } from '../data/repository/GameRepository';
 import { AuthRepository } from '../data/repository/AuthRepository';
 import { GameDto } from '../data/remote/dto/GameDto';
+import i18n from '../locales/i18n';
 
 interface HomeState {
   username: string;
@@ -60,7 +61,7 @@ export const useHomeStore = create<HomeState>((set) => ({
       coop: coop.data,
       retro: retro.data,
       isLoading: false,
-      errorMessage: hasError ? 'Failed to load games. Check your connection.' : null,
+      errorMessage: hasError ? i18n.t('home.error_failed_to_load') : null,
     });
   },
 }));
