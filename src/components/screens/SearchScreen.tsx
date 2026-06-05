@@ -14,6 +14,7 @@ import { BadgeChip } from '../shared/BadgeChip';
 import { useSearchStore, SearchFilters } from '../../store/useSearchStore';
 import { GameDto } from '../../data/remote/dto/GameDto';
 import { formatRating } from '../../utils/formatters';
+import { OfflineState } from '../shared/OfflineState';
 
 interface SearchScreenProps {
   onGameClick: (gameId: number) => void;
@@ -79,60 +80,75 @@ export function SearchScreen({ onGameClick }: SearchScreenProps) {
         </LinearGradient>
       </TouchableOpacity>
 
-      {errorMessage && (
-        <Text style={[Typography.bodyMedium, { color: colors.statusRed, paddingHorizontal: 16, paddingVertical: 8 }]}>
-          {errorMessage}
-        </Text>
-      )}
+      {errorMessage && displayList.length === 0 ? (
+        <OfflineState 
+          message={errorMessage} 
+          onRetry={() => {
+            if (!query && !filters.genre && !filters.platform && !filters.ordering && !filters.year) {
+              loadDefaultGames();
+            } else {
+              submitSearch();
+            }
+          }} 
+          colors={colors} 
+        />
+      ) : (
+        <View style={{ flex: 1 }}>
+          {/* Eroare de tip "toast" dacă avem deja date încărcate anterior dar netul pică la o nouă căutare */}
+          {errorMessage && displayList.length > 0 && (
+             <Text style={[Typography.bodyMedium, { color: colors.statusRed, paddingHorizontal: 16, paddingVertical: 8 }]}>
+               {errorMessage}
+             </Text>
+          )}
 
-      <View style={{ flex: 1 }}>
-        <FlatList
-          data={displayList}
-          keyExtractor={(item) => String(item.id)}
-          contentContainerStyle={{ paddingBottom: 24 }}
-          ListHeaderComponent={
-            <>
-              {isDefaultState && searchHistory.length > 0 && (
-                <SearchHistorySection
-                  history={searchHistory}
-                  onHistoryClick={onHistoryItemClick}
-                  onDeleteItem={deleteHistoryItem}
-                  onClearAll={clearHistory}
-                  colors={colors}
-                />
-              )}
-              {displayList.length > 0 && (
-                <View style={{ paddingHorizontal: 16, paddingVertical: 8 }}>
-                  <Text style={[Typography.titleLarge, { color: colors.textPrimary, fontWeight: '700' }]}>
-                    {isDefaultState ? t('search.trending_suggestions') : t('search.search_results')}
-                  </Text>
-                  <Text style={[Typography.labelSmall, { color: colors.accent, letterSpacing: 1 }]}>
-                    {t('search.titles_found', { count: displayList.length })}
-                  </Text>
-                </View>
-              )}
-              {!isDefaultState && !isLoading && displayList.length === 0 && hasSearched && (
-                <View style={styles.emptyState}>
-                  <Ionicons name="search-outline" size={64} color={colors.textMuted} />
-                  <Text style={[Typography.titleMedium, { color: colors.textMuted, marginTop: 16 }]}>
-                    {t('search.no_results')}
-                  </Text>
-                </View>
-              )}
-            </>
-          }
-          renderItem={({ item }) => (
-            <View style={{ paddingHorizontal: 16, paddingVertical: 6 }}>
-              <SearchResultCard game={item} onClick={() => onGameClick(item.id)} colors={colors} />
+          <FlatList
+            data={displayList}
+            keyExtractor={(item) => String(item.id)}
+            contentContainerStyle={{ paddingBottom: 24 }}
+            ListHeaderComponent={
+              <>
+                {isDefaultState && searchHistory.length > 0 && (
+                  <SearchHistorySection
+                    history={searchHistory}
+                    onHistoryClick={onHistoryItemClick}
+                    onDeleteItem={deleteHistoryItem}
+                    onClearAll={clearHistory}
+                    colors={colors}
+                  />
+                )}
+                {displayList.length > 0 && (
+                  <View style={{ paddingHorizontal: 16, paddingVertical: 8 }}>
+                    <Text style={[Typography.titleLarge, { color: colors.textPrimary, fontWeight: '700' }]}>
+                      {isDefaultState ? t('search.trending_suggestions') : t('search.search_results')}
+                    </Text>
+                    <Text style={[Typography.labelSmall, { color: colors.accent, letterSpacing: 1 }]}>
+                      {t('search.titles_found', { count: displayList.length })}
+                    </Text>
+                  </View>
+                )}
+                {!isDefaultState && !isLoading && displayList.length === 0 && hasSearched && !errorMessage && (
+                  <View style={styles.emptyState}>
+                    <Ionicons name="search-outline" size={64} color={colors.textMuted} />
+                    <Text style={[Typography.titleMedium, { color: colors.textMuted, marginTop: 16 }]}>
+                      {t('search.no_results')}
+                    </Text>
+                  </View>
+                )}
+              </>
+            }
+            renderItem={({ item }) => (
+              <View style={{ paddingHorizontal: 16, paddingVertical: 6 }}>
+                <SearchResultCard game={item} onClick={() => onGameClick(item.id)} colors={colors} />
+              </View>
+            )}
+          />
+          {isLoading && (
+            <View style={[styles.loadingOverlay, { backgroundColor: colors.background + '99' }]}>
+              <ActivityIndicator color={colors.accent} size="large" />
             </View>
           )}
-        />
-        {isLoading && (
-          <View style={[styles.loadingOverlay, { backgroundColor: colors.background + '99' }]}>
-            <ActivityIndicator color={colors.accent} size="large" />
-          </View>
-        )}
-      </View>
+        </View>
+      )}
 
       {isFilterSheetVisible && (
         <FilterBottomSheet

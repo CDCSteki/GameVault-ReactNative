@@ -19,6 +19,7 @@ import { useHomeStore } from '../../store/useHomeStore';
 import { useAppStore } from '../../store/useAppStore';
 import { GameDto } from '../../data/remote/dto/GameDto';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { OfflineState } from '../shared/OfflineState';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -35,112 +36,105 @@ export function HomeScreen({ onGameClick, onViewAllClick }: HomeScreenProps) {
     username, popularThisYear, allTimeLegends,
     indieGems, competitive, coop, retro,
     isLoading, errorMessage,
-    loadUsername, loadHomeData,
+    loadUsername, loadHomeData, setupNetworkObserver
   } = useHomeStore();
 
   useEffect(() => {
     loadUsername(userId);
     loadHomeData();
-    const unsubscribe = useHomeStore.getState().setupNetworkObserver();
+    const unsubscribe = setupNetworkObserver();
+    
     return () => unsubscribe();
   }, [userId]);
 
-  if (isLoading && popularThisYear.length === 0) {
-    return (
-      <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center' }]}>
-        <ActivityIndicator color={colors.accent} size="large" />
-      </View>
-    );
-  }
-
-  // Echivalentul condiției din Android Nativ pentru OfflineState
-  if (!isLoading && popularThisYear.length === 0 && errorMessage) {
-    return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <OfflineState message={errorMessage} onRetry={loadHomeData} colors={colors} />
-      </View>
-    );
-  }
-
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
-        {/* Header */}
+      <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}>
+        
         <HomeHeader username={username} colors={colors} />
 
-        {/* Popular This Year */}
-        {popularThisYear.length > 0 && (
+        {isLoading && popularThisYear.length === 0 ? (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', minHeight: 300 }}>
+            <ActivityIndicator color={colors.accent} size="large" />
+          </View>
+        ) : !isLoading && popularThisYear.length === 0 && errorMessage ? (
+          <View style={{ flex: 1, justifyContent: 'center', minHeight: 300 }}>
+            <OfflineState message={errorMessage} onRetry={loadHomeData} colors={colors} />
+          </View>
+        ) : (
           <>
-            <SectionHeader
-              title={t('home.popular_this_year')}
-              iconName="trending-up"
-              onViewAll={() => onViewAllClick('this_year')}
-              colors={colors}
-            />
-            <FlatList
-              data={popularThisYear}
-              keyExtractor={(item) => String(item.id)}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}
-              renderItem={({ item, index }) => (
-                <GameCardMedium
-                  game={item}
-                  badge={index === 0 ? t('home.badge_online') : index === 1 ? t('home.badge_trending') : undefined}
-                  badgeType={index === 0 ? 'ONLINE' : 'TRENDING'}
-                  onClick={() => onGameClick(item.id)}
+            {popularThisYear.length > 0 && (
+              <>
+                <SectionHeader
+                  title={t('home.popular_this_year')}
+                  iconName="trending-up"
+                  onViewAll={() => onViewAllClick('this_year')}
                   colors={colors}
                 />
-              )}
-            />
-            <View style={{ height: 24 }} />
-          </>
-        )}
+                <FlatList
+                  data={popularThisYear}
+                  keyExtractor={(item) => String(item.id)}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}
+                  renderItem={({ item, index }) => (
+                    <GameCardMedium
+                      game={item}
+                      badge={index === 0 ? t('home.badge_online') : index === 1 ? t('home.badge_trending') : undefined}
+                      badgeType={index === 0 ? 'ONLINE' : 'TRENDING'}
+                      onClick={() => onGameClick(item.id)}
+                      colors={colors}
+                    />
+                  )}
+                />
+                <View style={{ height: 24 }} />
+              </>
+            )}
 
-        {/* All-Time Legends */}
-        {allTimeLegends.length > 0 && (
-          <>
-            <SectionHeader
-              title={t('home.all_time_legends')}
-              iconName="trophy"
-              onViewAll={() => onViewAllClick('all_time')}
-              colors={colors}
-            />
-            <AllTimeLegendCard
-              game={allTimeLegends[0]}
-              onClick={() => onGameClick(allTimeLegends[0].id)}
-              colors={colors}
-            />
-            <View style={{ height: 24 }} />
-          </>
-        )}
+            {allTimeLegends.length > 0 && (
+              <>
+                <SectionHeader
+                  title={t('home.all_time_legends')}
+                  iconName="trophy"
+                  onViewAll={() => onViewAllClick('all_time')}
+                  colors={colors}
+                />
+                <AllTimeLegendCard
+                  game={allTimeLegends[0]}
+                  onClick={() => onGameClick(allTimeLegends[0].id)}
+                  colors={colors}
+                />
+                <View style={{ height: 24 }} />
+              </>
+            )}
 
-        {/* Discover */}
-        {!errorMessage && (indieGems.length > 0 || competitive.length > 0) && (
-          <>
-            <SectionHeader
-              title={t('home.discover')}
-              iconName="star"
-              onViewAll={null}
-              colors={colors}
-            />
-            <DiscoverGrid
-              indieGames={indieGems}
-              competitiveGames={competitive}
-              coOpGames={coop}
-              retroGames={retro}
-              onViewAllGenre={onViewAllClick}
-              colors={colors}
-            />
-            <View style={{ height: 24 }} />
-          </>
-        )}
+            {!errorMessage && (indieGems.length > 0 || competitive.length > 0) && (
+              <>
+                <SectionHeader
+                  title={t('home.discover')}
+                  iconName="star"
+                  onViewAll={null}
+                  colors={colors}
+                />
+                <DiscoverGrid
+                  indieGames={indieGems}
+                  competitiveGames={competitive}
+                  coOpGames={coop}
+                  retroGames={retro}
+                  onViewAllGenre={onViewAllClick}
+                  colors={colors}
+                />
+                <View style={{ height: 24 }} />
+              </>
+            )}
 
-        {/* Eroare jos în listă (când există date în cache dar netul a picat) */}
-        {errorMessage && popularThisYear.length > 0 && (
-          <Text style={[Typography.bodyMedium, { color: colors.statusRed, margin: 16 }]}>
-            {errorMessage}
-          </Text>
+            {/* Eroare de tip text în listă (când avem date afișate, dar a picat netul în fundal) */}
+            {errorMessage && popularThisYear.length > 0 && (
+              <Text style={[Typography.bodyMedium, { color: colors.statusRed, margin: 16 }]}>
+                {errorMessage}
+              </Text>
+            )}
+          </>
         )}
       </ScrollView>
     </View>
@@ -148,26 +142,6 @@ export function HomeScreen({ onGameClick, onViewAllClick }: HomeScreenProps) {
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
-
-function OfflineState({ message, onRetry, colors }: { message: string; onRetry: () => void; colors: any }) {
-  const { t } = useTranslation();
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 }}>
-      <Ionicons name="cloud-offline" size={72} color={colors.textMuted} />
-      <Text style={[Typography.bodyMedium, { color: colors.textMuted, textAlign: 'center', marginTop: 16, marginBottom: 24 }]}>
-        {message}
-      </Text>
-      <TouchableOpacity
-        style={{ backgroundColor: colors.accent, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 }}
-        onPress={onRetry}
-      >
-        <Text style={[Typography.labelLarge, { color: colors.textPrimary, fontWeight: '700' }]}>
-          {t('home.retry') || 'Retry'}
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
-}
 
 function HomeHeader({ username, colors }: { username: string; colors: any }) {
   const { t } = useTranslation();
