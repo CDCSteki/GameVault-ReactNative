@@ -9,7 +9,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider } from '../theme/ThemeContext';
 import { useAppStore } from '../store/useAppStore';
 import { getDatabase } from '../data/db/database';
-import { getThemeColors } from '../theme/colors'; // <-- 1. Import adăugat
+import { getThemeColors } from '../theme/colors';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -20,7 +20,6 @@ export default function RootLayout() {
   const router = useRouter();
   const segments = useSegments();
 
-  // <-- 2. Preluarea culorilor temei curente
   const themeColors = getThemeColors(appTheme); 
 
   useEffect(() => {

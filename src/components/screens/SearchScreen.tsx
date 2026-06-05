@@ -33,6 +33,8 @@ export function SearchScreen({ onGameClick }: SearchScreenProps) {
   useEffect(() => {
     loadDefaultGames();
     loadSearchHistory();
+    const unsubscribe = useSearchStore.getState().setupNetworkObserver();
+    return () => unsubscribe();
   }, []);
 
   const isDefaultState = !query && !filters.genre && !filters.platform && !filters.ordering && !filters.year;
@@ -111,7 +113,7 @@ export function SearchScreen({ onGameClick }: SearchScreenProps) {
               )}
               {!isDefaultState && !isLoading && displayList.length === 0 && hasSearched && (
                 <View style={styles.emptyState}>
-                  <Ionicons name="search" size={64} color={colors.textMuted} />
+                  <Ionicons name="search-outline" size={64} color={colors.textMuted} />
                   <Text style={[Typography.titleMedium, { color: colors.textMuted, marginTop: 16 }]}>
                     {t('search.no_results')}
                   </Text>

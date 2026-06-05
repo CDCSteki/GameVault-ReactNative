@@ -3,6 +3,7 @@ import { GameRepository } from '../data/repository/GameRepository';
 import { AuthRepository } from '../data/repository/AuthRepository';
 import { GameDto } from '../data/remote/dto/GameDto';
 import i18n from '../locales/i18n';
+import NetInfo from '@react-native-community/netinfo';
 
 interface HomeState {
   username: string;
@@ -14,12 +15,14 @@ interface HomeState {
   retro: GameDto[];
   isLoading: boolean;
   errorMessage: string | null;
+  isOffline: boolean;
 
   loadUsername: (userId: number) => Promise<void>;
   loadHomeData: () => Promise<void>;
+  setupNetworkObserver: () => () => void;
 }
 
-export const useHomeStore = create<HomeState>((set) => ({
+export const useHomeStore = create<HomeState>((set, get) => ({
   username: 'Hunter',
   popularThisYear: [],
   allTimeLegends: [],
@@ -29,6 +32,7 @@ export const useHomeStore = create<HomeState>((set) => ({
   retro: [],
   isLoading: false,
   errorMessage: null,
+  isOffline: false,
 
   loadUsername: async (userId: number) => {
     if (userId === -1) return;
@@ -63,5 +67,35 @@ export const useHomeStore = create<HomeState>((set) => ({
       isLoading: false,
       errorMessage: hasError ? i18n.t('home.error_failed_to_load') : null,
     });
+  },
+
+  setupNetworkObserver: () => {
+    const unsubscribe = NetInfo.addEventListener((state) => {
+      const isConnected = state.isConnected && state.isInternetReachable !== false;
+      const { isOffline, popularThisYear, errorMessage, loadHomeData } = get();
+
+      if (!isConnected && !isOffline) {
+        // Echivalentul lui NetworkStatus.Unavailable
+        set({
+          popularThisYear: [],
+          allTimeLegends: [],
+          indieGems: [],
+          competitive: [],
+          coop: [],
+          retro: [],
+          isLoading: false,
+          errorMessage: i18n.t('home.error_failed_to_load'),
+          isOffline: true,
+        });
+      } else if (isConnected && isOffline) {
+        // Echivalentul lui NetworkStatus.Available
+        set({ isOffline: false });
+        if (popularThisYear.length === 0 || errorMessage !== null) {
+          loadHomeData();
+        }
+      }
+    });
+    
+    return unsubscribe;
   },
 }));

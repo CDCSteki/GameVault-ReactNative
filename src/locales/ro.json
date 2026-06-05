@@ -159,7 +159,8 @@
     "discover_competitive": "Competitiv",
     "discover_coop": "Co-Op",
     "discover_retro": "Retro",
-    "error_failed_to_load": "Eroare la încărcare. Verifică conexiunea."
+    "error_failed_to_load": "Eroare la încărcare. Verifică conexiunea.",
+    "retry": "Reîncearcă"
   },
   "game_detail": {
     "retry": "Reîncearcă",

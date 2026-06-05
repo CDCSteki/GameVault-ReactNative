@@ -159,7 +159,8 @@
     "discover_competitive": "Competitive",
     "discover_coop": "Co-Op",
     "discover_retro": "Retro",
-    "error_failed_to_load": "Failed to load games. Check your connection."
+    "error_failed_to_load": "Failed to load games. Check your connection.",
+    "retry": "Retry"
   },
   "game_detail": {
     "retry": "Retry",

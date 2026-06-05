@@ -41,19 +41,30 @@ export function HomeScreen({ onGameClick, onViewAllClick }: HomeScreenProps) {
   useEffect(() => {
     loadUsername(userId);
     loadHomeData();
+    const unsubscribe = useHomeStore.getState().setupNetworkObserver();
+    return () => unsubscribe();
   }, [userId]);
 
   if (isLoading && popularThisYear.length === 0) {
     return (
+      <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center' }]}>
+        <ActivityIndicator color={colors.accent} size="large" />
+      </View>
+    );
+  }
+
+  // Echivalentul condiției din Android Nativ pentru OfflineState
+  if (!isLoading && popularThisYear.length === 0 && errorMessage) {
+    return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <ActivityIndicator color={colors.accent} size="large" style={{ flex: 1 }} />
+        <OfflineState message={errorMessage} onRetry={loadHomeData} colors={colors} />
       </View>
     );
   }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         {/* Header */}
         <HomeHeader username={username} colors={colors} />
 
@@ -105,7 +116,7 @@ export function HomeScreen({ onGameClick, onViewAllClick }: HomeScreenProps) {
         )}
 
         {/* Discover */}
-        {(indieGems.length > 0 || competitive.length > 0) && (
+        {!errorMessage && (indieGems.length > 0 || competitive.length > 0) && (
           <>
             <SectionHeader
               title={t('home.discover')}
@@ -125,7 +136,8 @@ export function HomeScreen({ onGameClick, onViewAllClick }: HomeScreenProps) {
           </>
         )}
 
-        {errorMessage && (
+        {/* Eroare jos în listă (când există date în cache dar netul a picat) */}
+        {errorMessage && popularThisYear.length > 0 && (
           <Text style={[Typography.bodyMedium, { color: colors.statusRed, margin: 16 }]}>
             {errorMessage}
           </Text>
@@ -137,15 +149,33 @@ export function HomeScreen({ onGameClick, onViewAllClick }: HomeScreenProps) {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
+function OfflineState({ message, onRetry, colors }: { message: string; onRetry: () => void; colors: any }) {
+  const { t } = useTranslation();
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 }}>
+      <Ionicons name="cloud-offline" size={72} color={colors.textMuted} />
+      <Text style={[Typography.bodyMedium, { color: colors.textMuted, textAlign: 'center', marginTop: 16, marginBottom: 24 }]}>
+        {message}
+      </Text>
+      <TouchableOpacity
+        style={{ backgroundColor: colors.accent, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 }}
+        onPress={onRetry}
+      >
+        <Text style={[Typography.labelLarge, { color: colors.textPrimary, fontWeight: '700' }]}>
+          {t('home.retry') || 'Retry'}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 function HomeHeader({ username, colors }: { username: string; colors: any }) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   return (
     <LinearGradient
       colors={[colors.accent + '40', colors.background]}
-      style={[styles.header,
-        { paddingTop: Math.max(insets.top, 16) }
-      ]}
+      style={[styles.header, { paddingTop: Math.max(insets.top, 16) }]}
     >
       <View style={styles.headerLogo}>
         <Ionicons name="game-controller" size={28} color={colors.accent} />
@@ -165,14 +195,7 @@ function HomeHeader({ username, colors }: { username: string; colors: any }) {
   );
 }
 
-function SectionHeader({
-  title, iconName, onViewAll, colors,
-}: {
-  title: string;
-  iconName: keyof typeof Ionicons.glyphMap;
-  onViewAll: (() => void) | null;
-  colors: any;
-}) {
+function SectionHeader({ title, iconName, onViewAll, colors }: { title: string; iconName: keyof typeof Ionicons.glyphMap; onViewAll: (() => void) | null; colors: any; }) {
   const { t } = useTranslation();
   return (
     <View style={styles.sectionHeader}>
@@ -193,91 +216,37 @@ function SectionHeader({
   );
 }
 
-function GameCardMedium({
-  game, badge, badgeType, onClick, colors,
-}: {
-  game: GameDto;
-  badge?: string;
-  badgeType?: string;
-  onClick: () => void;
-  colors: any;
-}) {
+function GameCardMedium({ game, badge, badgeType, onClick, colors }: { game: GameDto; badge?: string; badgeType?: string; onClick: () => void; colors: any; }) {
   return (
     <TouchableOpacity onPress={onClick} style={styles.gameCardMedium} activeOpacity={0.85}>
-      <Image
-        source={{ uri: game.background_image ?? '' }}
-        style={StyleSheet.absoluteFill}
-        contentFit="cover"
-      />
-      <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.8)']}
-        style={StyleSheet.absoluteFill}
-      />
+      <Image source={{ uri: game.background_image ?? '' }} style={StyleSheet.absoluteFill} contentFit="cover" />
+      <LinearGradient colors={['transparent', 'rgba(0,0,0,0.8)']} style={StyleSheet.absoluteFill} />
       {badge && (
-        <View
-          style={[
-            styles.badge,
-            { backgroundColor: badgeType === 'ONLINE' ? colors.accentSecondary : colors.accent },
-          ]}
-        >
-          <Text style={[Typography.labelSmall, { color: colors.background, fontWeight: '700' }]}>
-            {badge}
-          </Text>
+        <View style={[styles.badge, { backgroundColor: badgeType === 'ONLINE' ? colors.accentSecondary : colors.accent }]}>
+          <Text style={[Typography.labelSmall, { color: colors.background, fontWeight: '700' }]}>{badge}</Text>
         </View>
       )}
       <View style={styles.gameCardInfo}>
-        <Text
-          style={[Typography.labelLarge, { color: colors.textPrimary }]}
-          numberOfLines={2}
-        >
-          {game.name}
-        </Text>
-        <Text style={[Typography.labelSmall, { color: colors.textMuted }]}>
-          {game.genres?.[0]?.name?.toUpperCase() ?? ''}
-        </Text>
+        <Text style={[Typography.labelLarge, { color: colors.textPrimary }]} numberOfLines={2}>{game.name}</Text>
+        <Text style={[Typography.labelSmall, { color: colors.textMuted }]}>{game.genres?.[0]?.name?.toUpperCase() ?? ''}</Text>
       </View>
     </TouchableOpacity>
   );
 }
 
-function AllTimeLegendCard({
-  game, onClick, colors,
-}: {
-  game: GameDto;
-  onClick: () => void;
-  colors: any;
-}) {
+function AllTimeLegendCard({ game, onClick, colors }: { game: GameDto; onClick: () => void; colors: any; }) {
   const { t } = useTranslation();
   return (
-    <TouchableOpacity
-      onPress={onClick}
-      style={styles.allTimeLegendCard}
-      activeOpacity={0.85}
-    >
-      <Image
-        source={{ uri: game.background_image ?? '' }}
-        style={StyleSheet.absoluteFill}
-        contentFit="cover"
-      />
-      <LinearGradient
-        colors={['rgba(0,0,0,0.85)', 'transparent']}
-        start={{ x: 0, y: 0.5 }}
-        end={{ x: 1, y: 0.5 }}
-        style={StyleSheet.absoluteFill}
-      />
+    <TouchableOpacity onPress={onClick} style={styles.allTimeLegendCard} activeOpacity={0.85}>
+      <Image source={{ uri: game.background_image ?? '' }} style={StyleSheet.absoluteFill} contentFit="cover" />
+      <LinearGradient colors={['rgba(0,0,0,0.85)', 'transparent']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFill} />
       <View style={styles.legendContent}>
         <View style={[styles.hallOfFameBadge, { backgroundColor: colors.statusYellow + 'E6' }]}>
-          <Text style={[Typography.labelSmall, { color: colors.background, fontWeight: '800' }]}>
-            {t('home.hall_of_fame')}
-          </Text>
+          <Text style={[Typography.labelSmall, { color: colors.background, fontWeight: '800' }]}>{t('home.hall_of_fame')}</Text>
         </View>
         <View style={{ height: 6 }} />
-        <Text style={[Typography.headlineSmall, { color: colors.textPrimary, fontWeight: '700' }]}>
-          {game.name}
-        </Text>
-        <Text style={[Typography.bodySmall, { color: colors.textSecondary }]}>
-          {game.genres?.[0]?.name ?? ''}
-        </Text>
+        <Text style={[Typography.headlineSmall, { color: colors.textPrimary, fontWeight: '700' }]}>{game.name}</Text>
+        <Text style={[Typography.bodySmall, { color: colors.textSecondary }]}>{game.genres?.[0]?.name ?? ''}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -290,28 +259,10 @@ const DISCOVER_CATEGORIES = [
   { key: 'discover_retro',       i18nKey: 'home.discover_retro',       symbol: '◀', colorKey: 'statusOrange' },
 ];
 
-function DiscoverGrid({
-  indieGames, competitiveGames, coOpGames, retroGames, onViewAllGenre, colors,
-}: {
-  indieGames: GameDto[];
-  competitiveGames: GameDto[];
-  coOpGames: GameDto[];
-  retroGames: GameDto[];
-  onViewAllGenre: (route: string) => void;
-  colors: any;
-}) {
+function DiscoverGrid({ indieGames, competitiveGames, coOpGames, retroGames, onViewAllGenre, colors }: any) {
   const { t } = useTranslation();
-  const gameMap: Record<string, GameDto[]> = {
-    discover_indie: indieGames,
-    discover_competitive: competitiveGames,
-    discover_coop: coOpGames,
-    discover_retro: retroGames,
-  };
-
-  const pairs = [
-    DISCOVER_CATEGORIES.slice(0, 2),
-    DISCOVER_CATEGORIES.slice(2, 4),
-  ];
+  const gameMap: Record<string, GameDto[]> = { discover_indie: indieGames, discover_competitive: competitiveGames, discover_coop: coOpGames, discover_retro: retroGames };
+  const pairs = [DISCOVER_CATEGORIES.slice(0, 2), DISCOVER_CATEGORIES.slice(2, 4)];
 
   return (
     <View style={styles.discoverGrid}>
@@ -327,19 +278,11 @@ function DiscoverGrid({
                 style={[styles.discoverCard, { borderColor: color + '66', backgroundColor: colors.card }]}
                 activeOpacity={0.85}
               >
-                {games[0]?.background_image && (
-                  <Image
-                    source={{ uri: games[0].background_image }}
-                    style={[StyleSheet.absoluteFill, { opacity: 0.3, borderRadius: 12 }]}
-                    contentFit="cover"
-                  />
-                )}
+                {games[0]?.background_image && <Image source={{ uri: games[0].background_image }} style={[StyleSheet.absoluteFill, { opacity: 0.3, borderRadius: 12 }]} contentFit="cover" />}
                 <View style={[styles.discoverIcon, { backgroundColor: color + '26', borderColor: color + '80' }]}>
                   <Text style={{ color, fontSize: 18 }}>{cat.symbol}</Text>
                 </View>
-                <Text style={[Typography.labelMedium, { color: colors.textPrimary, fontWeight: '600', marginTop: 8 }]}>
-                  {t(cat.i18nKey)}
-                </Text>
+                <Text style={[Typography.labelMedium, { color: colors.textPrimary, fontWeight: '600', marginTop: 8 }]}>{t(cat.i18nKey)}</Text>
               </TouchableOpacity>
             );
           })}
@@ -351,87 +294,18 @@ function DiscoverGrid({
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 24,
-  },
-  headerLogo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  sectionHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  gameCardMedium: {
-    width: 150,
-    height: 200,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  badge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  gameCardInfo: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 10,
-  },
-  allTimeLegendCard: {
-    height: 200,
-    marginHorizontal: 16,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  legendContent: {
-    position: 'absolute',
-    bottom: 16,
-    left: 16,
-  },
-  hallOfFameBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
-  },
-  discoverGrid: {
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  discoverRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  discoverCard: {
-    flex: 1,
-    height: 120,
-    borderRadius: 12,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  discoverIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  header: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24 },
+  headerLogo: { flexDirection: 'row', alignItems: 'center' },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 8 },
+  sectionHeaderLeft: { flexDirection: 'row', alignItems: 'center' },
+  gameCardMedium: { width: 150, height: 200, borderRadius: 12, overflow: 'hidden' },
+  badge: { position: 'absolute', top: 8, right: 8, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+  gameCardInfo: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 10 },
+  allTimeLegendCard: { height: 200, marginHorizontal: 16, borderRadius: 16, overflow: 'hidden' },
+  legendContent: { position: 'absolute', bottom: 16, left: 16 },
+  hallOfFameBadge: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4 },
+  discoverGrid: { paddingHorizontal: 16, gap: 12 },
+  discoverRow: { flexDirection: 'row', gap: 12 },
+  discoverCard: { flex: 1, height: 120, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  discoverIcon: { width: 40, height: 40, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
 });
