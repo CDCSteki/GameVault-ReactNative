@@ -226,25 +226,37 @@ function ThemeOption({ theme, label, emoji, isSelected, onPress, colors }: {
   theme: AppTheme; label: string; emoji: string;
   isSelected: boolean; onPress: () => void; colors: any;
 }) {
-  // Get the theme's own accent colors for the circle
   const { getThemeColors } = require('../../theme/colors');
   const themeColors = getThemeColors(theme);
 
+  const gradientColors = (themeColors?.accent && themeColors?.accentSecondary) 
+    ? [themeColors.accent, themeColors.accentSecondary] as [string, string]
+    : ['#cccccc', '#999999'] as [string, string];
+
   return (
     <TouchableOpacity onPress={onPress} style={styles.themeOption}>
-      <LinearGradient
-        colors={[themeColors.accent, themeColors.accentSecondary]}
+      <View
         style={[
           styles.themeCircle,
-          isSelected && { borderWidth: 3, borderColor: colors.textPrimary },
+          { 
+            overflow: 'hidden',
+            borderWidth: isSelected ? 3 : 0,
+            borderColor: isSelected ? colors.textPrimary : 'transparent',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }
         ]}
       >
+        <LinearGradient
+          colors={gradientColors}
+          style={StyleSheet.absoluteFill}
+        />
         {isSelected ? (
-          <Ionicons name="checkmark" size={22} color="#FFFFFF" />
+          <Ionicons name="checkmark" size={22} color="#FFFFFF" style={{ zIndex: 1 }} />
         ) : (
-          <Text style={{ fontSize: 22 }}>{emoji}</Text>
+          <Text style={{ fontSize: 22, zIndex: 1 }}>{emoji}</Text>
         )}
-      </LinearGradient>
+      </View>
       <Text
         style={[
           Typography.labelSmall,
