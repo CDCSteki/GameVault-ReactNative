@@ -88,7 +88,7 @@ export function SearchScreen({ onGameClick }: SearchScreenProps) {
         <FlatList
           data={displayList}
           keyExtractor={(item) => String(item.id)}
-          contentContainerStyle={{ paddingBottom: 80 }}
+          contentContainerStyle={{ paddingBottom: 24 }}
           ListHeaderComponent={
             <>
               {isDefaultState && searchHistory.length > 0 && (
@@ -221,14 +221,14 @@ function SearchResultCard({ game, onClick, colors }: { game: GameDto; onClick: (
           <Text style={[Typography.labelMedium, { color: colors.textSecondary, marginLeft: 4 }]}>
             {formatRating(game.rating)}
           </Text>
-          {game.playtime && game.playtime > 0 && (
+          {(game.playtime ?? 0) > 0 ? (
             <>
               <Ionicons name="time-outline" size={14} color={colors.textMuted} style={{ marginLeft: 12 }} />
               <Text style={[Typography.labelSmall, { color: colors.textMuted, marginLeft: 4 }]}>
                 {game.playtime}h
               </Text>
             </>
-          )}
+          ) : null}
         </View>
       </View>
     </TouchableOpacity>
@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
   sheetHandle: { width: 40, height: 4, borderRadius: 2, alignSelf: 'center', marginBottom: 16 },
   filterChipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   filterChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1 },
-  filterActions: { flexDirection: 'row', gap: 12 },
-  filterClearBtn: { flex: 1, height: 48, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  filterApplyBtn: { flex: 1, height: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  filterActions: { flexDirection: 'row', justifyContent: 'space-between' },
+  filterClearBtn: { width: '48%', height: 48, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  filterApplyBtn: { width: '48%', height: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
 });

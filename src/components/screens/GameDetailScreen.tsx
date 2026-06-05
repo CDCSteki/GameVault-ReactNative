@@ -71,7 +71,7 @@ export function GameDetailScreen({ gameId, onBackClick }: GameDetailScreenProps)
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
         {/* Hero */}
         <View style={styles.hero}>
           <Image source={{ uri: gameDetail.background_image ?? '' }} style={styles.heroImage} contentFit="cover" />

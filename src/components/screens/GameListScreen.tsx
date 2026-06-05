@@ -159,16 +159,16 @@ function GameListCard({ game, onClick, colors }: { game: GameDto; onClick: () =>
       <View style={styles.cardContent}>
         <View>
           <View style={styles.cardBadges}>
-            {game.genres?.[0] && (
+            {game.genres?.[0] ? (
               <BadgeChip text={game.genres[0].name.toUpperCase()} />
-            )}
-            {game.platforms?.[0] && (
+            ) : null}
+            {game.platforms?.[0] ? (
               <BadgeChip
                 text={game.platforms[0].platform.name}
                 color={colors.accentSecondary + '26'}
                 textColor={colors.accentSecondary}
               />
-            )}
+            ) : null}
           </View>
           <Text
             style={[Typography.titleMedium, { color: colors.textPrimary, fontWeight: '700', marginTop: 6 }]}
@@ -185,19 +185,21 @@ function GameListCard({ game, onClick, colors }: { game: GameDto; onClick: () =>
               {formatRating(game.rating)}
             </Text>
           </View>
-          {game.playtime && game.playtime > 0 && (
+          
+          {(game.playtime ?? 0) > 0 ? (
             <View style={styles.cardMetaItem}>
               <Ionicons name="time-outline" size={14} color={colors.textMuted} />
               <Text style={[Typography.labelSmall, { color: colors.textMuted, marginLeft: 4 }]}>
                 {game.playtime}h
               </Text>
             </View>
-          )}
-          {game.released && (
+          ) : null}
+          
+          {game.released ? (
             <Text style={[Typography.labelSmall, { color: colors.textMuted }]}>
               {extractYear(game.released)}
             </Text>
-          )}
+          ) : null}
         </View>
       </View>
     </TouchableOpacity>

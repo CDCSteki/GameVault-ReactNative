@@ -13,15 +13,12 @@ import {
 } from '../remote/api/RawgApi';
 import type { GameScreenshotsResponse } from '../remote/dto/GameDto';
 
-// ─── Result types ─────────────────────────────────────────────────────────────
+export type AddToCollectionResult = 'Success' | 'AlreadyInCollection' | 'Error';
+export type AddToWishlistResult = 'Success' | 'AlreadyInWishlist' | 'AlreadyInCollection' | 'Error';
 
-export type AddToCollectionResult = 'Success' | 'AlreadyInCollection';
-export type AddToWishlistResult = 'Success' | 'AlreadyInWishlist' | 'AlreadyInCollection';
-
-// ─── Mappers ──────────────────────────────────────────────────────────────────
-
-export function gameDetailToEntity(detail: GameDetailDto): GameEntity {
+export function gameDetailToEntity(detail: GameDetailDto, userId: number): GameEntity {
   return {
+    userId,
     rawgId: detail.id,
     name: detail.name,
     coverImageUrl: detail.background_image ?? null,
@@ -53,181 +50,143 @@ export function entityToDetailDto(entity: GameEntity): GameDetailDto {
     rating: entity.rating,
     ratings_count: 0,
     playtime: null,
-    platforms:
-      entity.platforms
-        ?.split(',')
-        .map((name) => ({ platform: { id: 0, name: name.trim() } })) ?? null,
-    genres:
-      entity.genres
-        ?.split(',')
-        .map((name) => ({ id: 0, name: name.trim() })) ?? null,
-    developers: entity.developer
-      ? [{ id: 0, name: entity.developer }]
-      : null,
+    platforms: entity.platforms?.split(',').map((name) => ({ platform: { id: 0, name: name.trim() } })) ?? null,
+    genres: entity.genres?.split(',').map((name) => ({ id: 0, name: name.trim() })) ?? null,
+    developers: entity.developer ? [{ id: 0, name: entity.developer }] : null,
     publishers: null,
     ratings: null,
     esrb_rating: null,
   };
 }
 
-// ─── Repository ───────────────────────────────────────────────────────────────
-
 class GameRepositoryClass {
   // ── REMOTE ─────────────────────────────────────────────────────────────────
-
-  async getGamesThisYear(
-    dates: string,
-    pageSize: number = 10
-  ): Promise<{ data: GameDto[]; error?: string }> {
-    try {
-      const response = await getGamesThisYear(dates, pageSize);
-      return { data: response.results };
-    } catch (e: any) {
-      return { data: [], error: e.message };
-    }
+  async getGamesThisYear(dates: string, pageSize: number = 10) {
+    try { const response = await getGamesThisYear(dates, pageSize); return { data: response.results }; }
+    catch (e: any) { return { data: [], error: e.message }; }
   }
 
-  async getAllTimeTopGames(
-    pageSize: number = 10
-  ): Promise<{ data: GameDto[]; error?: string }> {
-    try {
-      const response = await getAllTimeTopGames(pageSize);
-      return { data: response.results };
-    } catch (e: any) {
-      return { data: [], error: e.message };
-    }
+  async getAllTimeTopGames(pageSize: number = 10) {
+    try { const response = await getAllTimeTopGames(pageSize); return { data: response.results }; }
+    catch (e: any) { return { data: [], error: e.message }; }
   }
 
-  async getGamesWithFilters(params: {
-    genres?: string;
-    tags?: string;
-    dates?: string;
-    pageSize?: number;
-  }): Promise<{ data: GameDto[]; error?: string }> {
-    try {
-      const response = await getGamesByFilters(params);
-      return { data: response.results };
-    } catch (e: any) {
-      return { data: [], error: e.message };
-    }
+  async getGamesWithFilters(params: any) {
+    try { const response = await getGamesByFilters(params); return { data: response.results }; }
+    catch (e: any) { return { data: [], error: e.message }; }
   }
 
-  async getPopularGames(
-    pageSize: number = 10
-  ): Promise<{ data: GameDto[]; error?: string }> {
-    try {
-      const response = await getPopularGames(pageSize);
-      return { data: response.results };
-    } catch (e: any) {
-      return { data: [], error: e.message };
-    }
+  async getPopularGames(pageSize: number = 10) {
+    try { const response = await getPopularGames(pageSize); return { data: response.results }; }
+    catch (e: any) { return { data: [], error: e.message }; }
   }
 
-  async getGameDetails(
-    gameId: number
-  ): Promise<{ data: GameDetailDto | null; error?: string }> {
-    try {
-      const data = await getGameDetails(gameId);
-      return { data };
-    } catch (e: any) {
-      return { data: null, error: e.message };
-    }
+  async getGameDetails(gameId: number) {
+    try { const data = await getGameDetails(gameId); return { data }; }
+    catch (e: any) { return { data: null, error: e.message }; }
   }
 
-  async getGameScreenshots(
-    gameId: number
-  ): Promise<{ data: GameScreenshotsResponse | null; error?: string }> {
-    try {
-      const data = await getGameScreenshots(gameId);
-      return { data };
-    } catch (e: any) {
-      return { data: null, error: e.message };
-    }
+  async getGameScreenshots(gameId: number) {
+    try { const data = await getGameScreenshots(gameId); return { data }; }
+    catch (e: any) { return { data: null, error: e.message }; }
   }
 
   // ── LOCAL - COLLECTION ─────────────────────────────────────────────────────
 
   async getCollection(): Promise<GameEntity[]> {
-    return gameDao.getCollection();
+    const userId = await AppPreferences.getLoggedInUserId();
+    if (userId === -1) return [];
+    return gameDao.getCollection(userId);
   }
 
-  async addToCollection(game: GameEntity): Promise<AddToCollectionResult> {
-    const existing = await gameDao.getGameById(game.rawgId);
+  async addToCollection(gameDetail: GameDetailDto): Promise<AddToCollectionResult> {
+    const userId = await AppPreferences.getLoggedInUserId();
+    if (userId === -1) return 'Error';
+
+    const existing = await gameDao.getGameById(userId, gameDetail.id);
     if (existing?.isInCollection) return 'AlreadyInCollection';
 
     if (existing) {
-      await gameDao.updateCollectionStatus(game.rawgId, true);
-      await gameDao.updateWishlistStatus(game.rawgId, false);
+      await gameDao.updateCollectionStatus(userId, gameDetail.id, true);
+      await gameDao.updateWishlistStatus(userId, gameDetail.id, false);
     } else {
-      await gameDao.insertGame({
-        ...game,
-        isInCollection: true,
-        isInWishlist: false,
-        playStatus: 'NOT_PLAYED',
-      });
+      const entity = gameDetailToEntity(gameDetail, userId);
+      await gameDao.insertGame({ ...entity, isInCollection: true, isInWishlist: false, playStatus: 'NOT_PLAYED' });
     }
     return 'Success';
   }
 
   async removeFromCollection(rawgId: number): Promise<void> {
-    await gameDao.updateCollectionStatus(rawgId, false);
-    await gameDao.updatePlayStatus(rawgId, 'NOT_PLAYED');
+    const userId = await AppPreferences.getLoggedInUserId();
+    if (userId !== -1) {
+      await gameDao.updateCollectionStatus(userId, rawgId, false);
+      await gameDao.updatePlayStatus(userId, rawgId, 'NOT_PLAYED');
+    }
   }
 
   async updatePlayStatus(rawgId: number, status: PlayStatus): Promise<void> {
+    const userId = await AppPreferences.getLoggedInUserId();
+    if (userId === -1) return;
+
     const isPlayed = status === 'PLAYED';
-    await gameDao.updatePlayedStatus(rawgId, isPlayed, status);
-    if (isPlayed) await this.recalculateUserLevel();
+    await gameDao.updatePlayedStatus(userId, rawgId, isPlayed, status);
+    if (isPlayed) await this.recalculateUserLevel(userId);
   }
 
   // ── LOCAL - WISHLIST ───────────────────────────────────────────────────────
 
   async getWishlist(): Promise<GameEntity[]> {
-    return gameDao.getWishlist();
+    const userId = await AppPreferences.getLoggedInUserId();
+    if (userId === -1) return [];
+    return gameDao.getWishlist(userId);
   }
 
-  async addToWishlist(game: GameEntity): Promise<AddToWishlistResult> {
-    const existing = await gameDao.getGameById(game.rawgId);
+  async addToWishlist(gameDetail: GameDetailDto): Promise<AddToWishlistResult> {
+    const userId = await AppPreferences.getLoggedInUserId();
+    if (userId === -1) return 'Error';
+
+    const existing = await gameDao.getGameById(userId, gameDetail.id);
     if (existing?.isInCollection) return 'AlreadyInCollection';
     if (existing?.isInWishlist) return 'AlreadyInWishlist';
 
     if (existing) {
-      await gameDao.updateWishlistStatus(game.rawgId, true);
+      await gameDao.updateWishlistStatus(userId, gameDetail.id, true);
     } else {
-      await gameDao.insertGame({
-        ...game,
-        isInWishlist: true,
-        isInCollection: false,
-      });
+      const entity = gameDetailToEntity(gameDetail, userId);
+      await gameDao.insertGame({ ...entity, isInWishlist: true, isInCollection: false });
     }
     return 'Success';
   }
 
   async removeFromWishlist(rawgId: number): Promise<void> {
-    await gameDao.updateWishlistStatus(rawgId, false);
+    const userId = await AppPreferences.getLoggedInUserId();
+    if (userId !== -1) {
+      await gameDao.updateWishlistStatus(userId, rawgId, false);
+    }
   }
 
   // ── LOCAL - RATINGS & NOTES ────────────────────────────────────────────────
 
   async updateUserRating(rawgId: number, rating: number): Promise<void> {
-    await gameDao.updateUserRating(rawgId, rating);
+    const userId = await AppPreferences.getLoggedInUserId();
+    if (userId !== -1) await gameDao.updateUserRating(userId, rawgId, rating);
   }
 
   async updateUserNotes(rawgId: number, notes: string | null): Promise<void> {
-    await gameDao.updateUserNotes(rawgId, notes);
+    const userId = await AppPreferences.getLoggedInUserId();
+    if (userId !== -1) await gameDao.updateUserNotes(userId, rawgId, notes);
   }
 
   async getGameById(rawgId: number): Promise<GameEntity | null> {
-    return gameDao.getGameById(rawgId);
+    const userId = await AppPreferences.getLoggedInUserId();
+    if (userId === -1) return null;
+    return gameDao.getGameById(userId, rawgId);
   }
 
   // ── LEVEL SYSTEM ──────────────────────────────────────────────────────────
 
-  private async recalculateUserLevel(): Promise<void> {
-    const playedCount = await gameDao.getPlayedGamesCount();
-    const userId = await AppPreferences.getLoggedInUserId();
-    if (userId === -1) return;
-
+  private async recalculateUserLevel(userId: number): Promise<void> {
+    const playedCount = await gameDao.getPlayedGamesCount(userId);
     const user = await userDao.getUserById(userId);
     if (!user) return;
 

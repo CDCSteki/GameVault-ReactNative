@@ -11,12 +11,13 @@ export class GameDao {
     const db = await this.db();
     await db.runAsync(
       `INSERT OR REPLACE INTO games (
-        rawgId, name, coverImageUrl, backgroundImageUrl, description,
+        userId, rawgId, name, coverImageUrl, backgroundImageUrl, description,
         developer, releaseDate, platforms, genres, storageSize,
         rating, userRating, userNotes, isInCollection, isInWishlist,
         isPlayed, playStatus, addedAt
-      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [
+        game.userId,
         game.rawgId,
         game.name,
         game.coverImageUrl ?? null,
@@ -43,142 +44,149 @@ export class GameDao {
     await this.insertGame(game);
   }
 
-  async getCollection(): Promise<GameEntity[]> {
+  async getCollection(userId: number): Promise<GameEntity[]> {
     const db = await this.db();
     const rows = await db.getAllAsync<any>(
-      `SELECT * FROM games WHERE isInCollection = 1 ORDER BY addedAt DESC`
+      `SELECT * FROM games WHERE userId = ? AND isInCollection = 1 ORDER BY addedAt DESC`,
+      [userId]
     );
     return rows.map(this.mapRow);
   }
 
-  async getPlayedGames(): Promise<GameEntity[]> {
+  async getPlayedGames(userId: number): Promise<GameEntity[]> {
     const db = await this.db();
     const rows = await db.getAllAsync<any>(
-      `SELECT * FROM games WHERE isInCollection = 1 AND playStatus = 'PLAYED' ORDER BY addedAt DESC`
+      `SELECT * FROM games WHERE userId = ? AND isInCollection = 1 AND playStatus = 'PLAYED' ORDER BY addedAt DESC`,
+      [userId]
     );
     return rows.map(this.mapRow);
   }
 
-  async getNotPlayedGames(): Promise<GameEntity[]> {
+  async getNotPlayedGames(userId: number): Promise<GameEntity[]> {
     const db = await this.db();
     const rows = await db.getAllAsync<any>(
-      `SELECT * FROM games WHERE isInCollection = 1 AND playStatus = 'NOT_PLAYED' ORDER BY addedAt DESC`
+      `SELECT * FROM games WHERE userId = ? AND isInCollection = 1 AND playStatus = 'NOT_PLAYED' ORDER BY addedAt DESC`,
+      [userId]
     );
     return rows.map(this.mapRow);
   }
 
-  async getPlayingGames(): Promise<GameEntity[]> {
+  async getPlayingGames(userId: number): Promise<GameEntity[]> {
     const db = await this.db();
     const rows = await db.getAllAsync<any>(
-      `SELECT * FROM games WHERE isInCollection = 1 AND playStatus = 'PLAYING' ORDER BY addedAt DESC`
+      `SELECT * FROM games WHERE userId = ? AND isInCollection = 1 AND playStatus = 'PLAYING' ORDER BY addedAt DESC`,
+      [userId]
     );
     return rows.map(this.mapRow);
   }
 
-  async getWishlist(): Promise<GameEntity[]> {
+  async getWishlist(userId: number): Promise<GameEntity[]> {
     const db = await this.db();
     const rows = await db.getAllAsync<any>(
-      `SELECT * FROM games WHERE isInWishlist = 1 ORDER BY addedAt DESC`
+      `SELECT * FROM games WHERE userId = ? AND isInWishlist = 1 ORDER BY addedAt DESC`,
+      [userId]
     );
     return rows.map(this.mapRow);
   }
 
-  async getGameById(rawgId: number): Promise<GameEntity | null> {
+  async getGameById(userId: number, rawgId: number): Promise<GameEntity | null> {
     const db = await this.db();
     const row = await db.getFirstAsync<any>(
-      `SELECT * FROM games WHERE rawgId = ? LIMIT 1`,
-      [rawgId]
+      `SELECT * FROM games WHERE userId = ? AND rawgId = ? LIMIT 1`,
+      [userId, rawgId]
     );
     return row ? this.mapRow(row) : null;
   }
 
-  async updateCollectionStatus(rawgId: number, inCollection: boolean): Promise<void> {
+  async updateCollectionStatus(userId: number, rawgId: number, inCollection: boolean): Promise<void> {
     const db = await this.db();
     await db.runAsync(
-      `UPDATE games SET isInCollection = ? WHERE rawgId = ?`,
-      [inCollection ? 1 : 0, rawgId]
+      `UPDATE games SET isInCollection = ? WHERE userId = ? AND rawgId = ?`,
+      [inCollection ? 1 : 0, userId, rawgId]
     );
   }
 
-  async updateWishlistStatus(rawgId: number, inWishlist: boolean): Promise<void> {
+  async updateWishlistStatus(userId: number, rawgId: number, inWishlist: boolean): Promise<void> {
     const db = await this.db();
     await db.runAsync(
-      `UPDATE games SET isInWishlist = ? WHERE rawgId = ?`,
-      [inWishlist ? 1 : 0, rawgId]
+      `UPDATE games SET isInWishlist = ? WHERE userId = ? AND rawgId = ?`,
+      [inWishlist ? 1 : 0, userId, rawgId]
     );
   }
 
-  async updatePlayedStatus(rawgId: number, isPlayed: boolean, playStatus: PlayStatus): Promise<void> {
+  async updatePlayedStatus(userId: number, rawgId: number, isPlayed: boolean, playStatus: PlayStatus): Promise<void> {
     const db = await this.db();
     await db.runAsync(
-      `UPDATE games SET isPlayed = ?, playStatus = ? WHERE rawgId = ?`,
-      [isPlayed ? 1 : 0, playStatus, rawgId]
+      `UPDATE games SET isPlayed = ?, playStatus = ? WHERE userId = ? AND rawgId = ?`,
+      [isPlayed ? 1 : 0, playStatus, userId, rawgId]
     );
   }
 
-  async updatePlayStatus(rawgId: number, playStatus: PlayStatus): Promise<void> {
+  async updatePlayStatus(userId: number, rawgId: number, playStatus: PlayStatus): Promise<void> {
     const db = await this.db();
     await db.runAsync(
-      `UPDATE games SET playStatus = ? WHERE rawgId = ?`,
-      [playStatus, rawgId]
+      `UPDATE games SET playStatus = ? WHERE userId = ? AND rawgId = ?`,
+      [playStatus, userId, rawgId]
     );
   }
 
-  async updateUserRating(rawgId: number, rating: number): Promise<void> {
+  async updateUserRating(userId: number, rawgId: number, rating: number): Promise<void> {
     const db = await this.db();
     await db.runAsync(
-      `UPDATE games SET userRating = ? WHERE rawgId = ?`,
-      [rating, rawgId]
+      `UPDATE games SET userRating = ? WHERE userId = ? AND rawgId = ?`,
+      [rating, userId, rawgId]
     );
   }
 
-  async updateUserNotes(rawgId: number, notes: string | null): Promise<void> {
+  async updateUserNotes(userId: number, rawgId: number, notes: string | null): Promise<void> {
     const db = await this.db();
     await db.runAsync(
-      `UPDATE games SET userNotes = ? WHERE rawgId = ?`,
-      [notes ?? null, rawgId]
+      `UPDATE games SET userNotes = ? WHERE userId = ? AND rawgId = ?`,
+      [notes ?? null, userId, rawgId]
     );
   }
 
-  async deleteGame(rawgId: number): Promise<void> {
+  async deleteGame(userId: number, rawgId: number): Promise<void> {
     const db = await this.db();
-    await db.runAsync(`DELETE FROM games WHERE rawgId = ?`, [rawgId]);
+    await db.runAsync(`DELETE FROM games WHERE userId = ? AND rawgId = ?`, [userId, rawgId]);
   }
 
-  async getPlayedGamesCount(): Promise<number> {
+  async getPlayedGamesCount(userId: number): Promise<number> {
     const db = await this.db();
     const row = await db.getFirstAsync<{ count: number }>(
-      `SELECT COUNT(*) as count FROM games WHERE isInCollection = 1 AND playStatus = 'PLAYED'`
+      `SELECT COUNT(*) as count FROM games WHERE userId = ? AND isInCollection = 1 AND playStatus = 'PLAYED'`,
+      [userId]
     );
     return row?.count ?? 0;
   }
 
-  async filterCollection(genre: string | null): Promise<GameEntity[]> {
+  async filterCollection(userId: number, genre: string | null): Promise<GameEntity[]> {
     const db = await this.db();
     const rows = await db.getAllAsync<any>(
       `SELECT * FROM games
-       WHERE isInCollection = 1
+       WHERE userId = ? AND isInCollection = 1
        AND (? IS NULL OR genres LIKE '%' || ? || '%')
        ORDER BY addedAt DESC`,
-      [genre, genre]
+      [userId, genre, genre]
     );
     return rows.map(this.mapRow);
   }
 
-  async filterWishlist(genre: string | null): Promise<GameEntity[]> {
+  async filterWishlist(userId: number, genre: string | null): Promise<GameEntity[]> {
     const db = await this.db();
     const rows = await db.getAllAsync<any>(
       `SELECT * FROM games
-       WHERE isInWishlist = 1
+       WHERE userId = ? AND isInWishlist = 1
        AND (? IS NULL OR genres LIKE '%' || ? || '%')
        ORDER BY addedAt DESC`,
-      [genre, genre]
+      [userId, genre, genre]
     );
     return rows.map(this.mapRow);
   }
 
   private mapRow(row: any): GameEntity {
     return {
+      userId: row.userId,
       rawgId: row.rawgId,
       name: row.name,
       coverImageUrl: row.coverImageUrl ?? null,

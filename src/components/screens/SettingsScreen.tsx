@@ -30,7 +30,7 @@ export function SettingsScreen({ onAccountDeleted }: SettingsScreenProps) {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
         <GameVaultTopBar />
 
         <View style={{ height: 8 }} />
@@ -150,7 +150,6 @@ export function SettingsScreen({ onAccountDeleted }: SettingsScreenProps) {
           </View>
         </SettingsSectionCard>
 
-        <View style={{ height: 100 }} />
       </ScrollView>
 
       {/* Delete Account Dialog */}

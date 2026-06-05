@@ -138,7 +138,7 @@ export function LibraryScreen({ onGameClick }: LibraryScreenProps) {
           <FlatList
             data={listData}
             keyExtractor={(item) => String(item.rawgId)}
-            contentContainerStyle={{ padding: 16, gap: 12 }}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 24, gap: 12 }}
             renderItem={({ item }) =>
               activeTab === 'COLLECTION' ? (
                 <CollectionGameCard

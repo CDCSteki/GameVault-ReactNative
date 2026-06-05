@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { GameRepository } from '../data/repository/GameRepository';
+import { entityToDetailDto, GameRepository } from '../data/repository/GameRepository';
 import { GameEntity, PlayStatus } from '../data/db/entities';
 
 export type LibraryTab = 'COLLECTION' | 'WISHLIST';
@@ -69,7 +69,8 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   },
 
   onMoveToCollection: async (game) => {
-    await GameRepository.addToCollection(game);
+    const dto = entityToDetailDto(game);
+    await GameRepository.addToCollection(dto);
     await Promise.all([get().loadCollection(), get().loadWishlist()]);
   },
 

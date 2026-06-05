@@ -3,13 +3,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../theme/ThemeContext';
 import { Typography } from '../../theme/typography';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export function GameVaultTopBar() {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   return (
     <LinearGradient
       colors={[colors.accent + '40', colors.background]}
-      style={styles.container}
+      style={[styles.container, { paddingTop: Math.max(insets.top, 16) }]}
     >
       <View style={styles.row}>
         <Ionicons name="game-controller" size={28} color={colors.accent} />

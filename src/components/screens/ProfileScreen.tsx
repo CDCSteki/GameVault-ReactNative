@@ -59,7 +59,7 @@ export function ProfileScreen({ onLogout }: ProfileScreenProps) {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
         <GameVaultTopBar />
 
         {/* Avatar */}
@@ -181,7 +181,6 @@ export function ProfileScreen({ onLogout }: ProfileScreenProps) {
           </Text>
         </TouchableOpacity>
 
-        <View style={{ height: 100 }} />
       </ScrollView>
 
       {/* Image Picker Modal */}

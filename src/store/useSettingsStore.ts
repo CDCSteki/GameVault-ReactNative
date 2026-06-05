@@ -4,6 +4,7 @@ import { AuthRepository } from '../data/repository/AuthRepository';
 import { SearchRepository } from '../data/repository/SearchRepository';
 import { AppTheme } from '../theme/colors';
 import { useAppStore } from './useAppStore';
+import { useSearchStore } from './useSearchStore';
 
 interface SettingsState {
   appTheme: AppTheme;
@@ -46,6 +47,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
 
   clearSearchHistory: async () => {
     await SearchRepository.clearAllHistory();
+    await useSearchStore.getState().clearHistory();
     set({ historyCleared: true });
   },
 

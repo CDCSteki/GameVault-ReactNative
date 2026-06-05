@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { GameRepository, gameDetailToEntity, entityToDetailDto } from '../data/repository/GameRepository';
 import { GameDetailDto, GameScreenshotDto } from '../data/remote/dto/GameDto';
 import { GameEntity, PlayStatus } from '../data/db/entities';
+import { useLibraryStore } from './useLibraryStore';
 
 interface GameDetailState {
   gameDetail: GameDetailDto | null;
@@ -94,26 +95,26 @@ export const useGameDetailStore = create<GameDetailState>((set, get) => ({
   addToCollection: async (gameId) => {
     const { gameDetail } = get();
     if (!gameDetail) return;
-    const entity = gameDetailToEntity(gameDetail);
-    const result = await GameRepository.addToCollection(entity);
+    const result = await GameRepository.addToCollection(gameDetail);
     set({
       snackbarMessage:
         result === 'Success' ? 'Added to collection!' : 'Already in your collection!',
     });
     await get().refreshLocalState(gameId);
+    await useLibraryStore.getState().loadAll();
   },
 
   removeFromCollection: async (gameId) => {
     await GameRepository.removeFromCollection(gameId);
     set({ snackbarMessage: 'Removed from collection' });
     await get().refreshLocalState(gameId);
+    await useLibraryStore.getState().loadAll();
   },
 
   addToWishlist: async (gameId) => {
     const { gameDetail } = get();
     if (!gameDetail) return;
-    const entity = gameDetailToEntity(gameDetail);
-    const result = await GameRepository.addToWishlist(entity);
+    const result = await GameRepository.addToWishlist(gameDetail);
     const messages: Record<string, string> = {
       Success: 'Added to wishlist!',
       AlreadyInWishlist: 'Already in your wishlist!',
@@ -121,25 +122,27 @@ export const useGameDetailStore = create<GameDetailState>((set, get) => ({
     };
     set({ snackbarMessage: messages[result] });
     await get().refreshLocalState(gameId);
+    await useLibraryStore.getState().loadAll();
   },
 
   removeFromWishlist: async (gameId) => {
     await GameRepository.removeFromWishlist(gameId);
     set({ snackbarMessage: 'Removed from wishlist' });
     await get().refreshLocalState(gameId);
+    await useLibraryStore.getState().loadAll();
   },
 
   onPlayStatusChange: async (gameId, status) => {
     await GameRepository.updatePlayStatus(gameId, status);
     await get().refreshLocalState(gameId);
+    await useLibraryStore.getState().loadAll();
   },
 
   onRatingChange: async (gameId, rating) => {
     set({ userRating: rating });
     const { localGame, gameDetail } = get();
     if (!localGame && gameDetail) {
-      const entity = gameDetailToEntity(gameDetail);
-      await GameRepository.addToCollection(entity);
+      await GameRepository.addToCollection(gameDetail);
     }
     await GameRepository.updateUserRating(gameId, rating);
     await get().refreshLocalState(gameId);

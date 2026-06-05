@@ -2,6 +2,7 @@ import { searchHistoryDao } from '../db/dao/searchHistoryDao';
 import { SearchHistoryEntity } from '../db/entities';
 import { searchGames as apiSearchGames } from '../remote/api/RawgApi';
 import { GameDto } from '../remote/dto/GameDto';
+import { AppPreferences } from '../preferences/AppPreferences';
 
 class SearchRepositoryClass {
   // ── REMOTE SEARCH ─────────────────────────────────────────────────────────
@@ -35,24 +36,35 @@ class SearchRepositoryClass {
   // ── HISTORY ───────────────────────────────────────────────────────────────
 
   async getRecentSearches(): Promise<SearchHistoryEntity[]> {
-    return searchHistoryDao.getRecentSearches();
+    const userId = await AppPreferences.getLoggedInUserId();
+    if (userId === -1) return [];
+    return searchHistoryDao.getRecentSearches(userId);
   }
 
   async saveSearch(query: string): Promise<void> {
     if (!query.trim()) return;
-    // Remove duplicate first (same as Kotlin: delete then re-insert to bump timestamp)
-    if ((await searchHistoryDao.queryExists(query)) > 0) {
-      await searchHistoryDao.deleteByQuery(query);
+    const userId = await AppPreferences.getLoggedInUserId();
+    if (userId === -1) return;
+
+    // Șterge duplicatul și apoi inserează-l pentru a-l pune la început (bumping)
+    if ((await searchHistoryDao.queryExists(userId, query)) > 0) {
+      await searchHistoryDao.deleteByQuery(userId, query);
     }
-    await searchHistoryDao.insertSearch(query);
+    await searchHistoryDao.insertSearch(userId, query);
   }
 
   async deleteSearchById(id: number): Promise<void> {
-    await searchHistoryDao.deleteById(id);
+    const userId = await AppPreferences.getLoggedInUserId();
+    if (userId !== -1) {
+      await searchHistoryDao.deleteById(userId, id);
+    }
   }
 
   async clearAllHistory(): Promise<void> {
-    await searchHistoryDao.clearAllHistory();
+    const userId = await AppPreferences.getLoggedInUserId();
+    if (userId !== -1) {
+      await searchHistoryDao.clearAllHistory(userId);
+    }
   }
 }
 

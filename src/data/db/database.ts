@@ -25,7 +25,9 @@ async function initializeDatabase(db: SQLite.SQLiteDatabase): Promise<void> {
     );
 
     CREATE TABLE IF NOT EXISTS games (
-      rawgId INTEGER PRIMARY KEY,
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId INTEGER NOT NULL,
+      rawgId INTEGER NOT NULL,
       name TEXT NOT NULL,
       coverImageUrl TEXT,
       backgroundImageUrl TEXT,
@@ -42,11 +44,13 @@ async function initializeDatabase(db: SQLite.SQLiteDatabase): Promise<void> {
       isInWishlist INTEGER DEFAULT 0,
       isPlayed INTEGER DEFAULT 0,
       playStatus TEXT DEFAULT 'NOT_PLAYED',
-      addedAt INTEGER DEFAULT (strftime('%s','now') * 1000)
+      addedAt INTEGER DEFAULT (strftime('%s','now') * 1000),
+      UNIQUE(userId, rawgId)
     );
 
     CREATE TABLE IF NOT EXISTS search_history (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId INTEGER NOT NULL,
       query TEXT NOT NULL,
       searchedAt INTEGER DEFAULT (strftime('%s','now') * 1000)
     );

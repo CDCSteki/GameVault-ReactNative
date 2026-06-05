@@ -19,6 +19,7 @@ import { GameVaultTopBar } from '../shared/GameVaultTopBar';
 import { useHomeStore } from '../../store/useHomeStore';
 import { useAppStore } from '../../store/useAppStore';
 import { GameDto } from '../../data/remote/dto/GameDto';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -52,7 +53,7 @@ export function HomeScreen({ onGameClick, onViewAllClick }: HomeScreenProps) {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
         {/* Header */}
         <HomeHeader username={username} colors={colors} />
 
@@ -136,10 +137,13 @@ export function HomeScreen({ onGameClick, onViewAllClick }: HomeScreenProps) {
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function HomeHeader({ username, colors }: { username: string; colors: any }) {
+  const insets = useSafeAreaInsets();
   return (
     <LinearGradient
       colors={[colors.accent + '40', colors.background]}
-      style={styles.header}
+      style={[styles.header,
+        { paddingTop: Math.max(insets.top, 16) }
+      ]}
     >
       <View style={styles.headerLogo}>
         <Ionicons name="game-controller" size={28} color={colors.accent} />
