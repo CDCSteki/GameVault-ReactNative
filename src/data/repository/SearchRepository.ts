@@ -46,7 +46,6 @@ class SearchRepositoryClass {
     const userId = await AppPreferences.getLoggedInUserId();
     if (userId === -1) return;
 
-    // Șterge duplicatul și apoi inserează-l pentru a-l pune la început (bumping)
     if ((await searchHistoryDao.queryExists(userId, query)) > 0) {
       await searchHistoryDao.deleteByQuery(userId, query);
     }

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, FlatList,
-  StyleSheet, Modal, Alert,
+  StyleSheet, Modal,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,7 +25,7 @@ export function LibraryScreen({ onGameClick }: LibraryScreenProps) {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const {
-    activeTab, collectionFilter, wishlist, isLoading,
+    activeTab, collectionFilter, wishlist,
     loadAll, setActiveTab, setCollectionFilter,
     onPlayStatusChange, onRemoveFromCollection,
     onRemoveFromWishlist, onMoveToCollection, getFilteredCollection,

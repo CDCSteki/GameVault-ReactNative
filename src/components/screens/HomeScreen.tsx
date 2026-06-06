@@ -49,7 +49,7 @@ export function HomeScreen({ onGameClick, onViewAllClick }: HomeScreenProps) {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}>
         
         <HomeHeader username={username} colors={colors} />
 
@@ -128,7 +128,6 @@ export function HomeScreen({ onGameClick, onViewAllClick }: HomeScreenProps) {
               </>
             )}
 
-            {/* Eroare de tip text în listă (când avem date afișate, dar a picat netul în fundal) */}
             {errorMessage && popularThisYear.length > 0 && (
               <Text style={[Typography.bodyMedium, { color: colors.statusRed, margin: 16 }]}>
                 {errorMessage}

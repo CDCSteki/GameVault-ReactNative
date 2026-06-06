@@ -1,28 +1,28 @@
-import * as Crypto from 'expo-crypto';
-import { userDao } from '../db/dao/userDao';
-import { AppPreferences } from '../preferences/AppPreferences';
-import { UserEntity } from '../db/entities';
+import * as Crypto from "expo-crypto";
+import { userDao } from "../db/dao/userDao";
+import { AppPreferences } from "../preferences/AppPreferences";
+import { UserEntity } from "../db/entities";
 
 // ─── Result types ─────────────────────────────────────────────────────────────
 
 export type RegisterResult =
-  | { type: 'Success'; userId: number }
-  | { type: 'EmailAlreadyExists' }
-  | { type: 'UsernameAlreadyExists' };
+  | { type: "Success"; userId: number }
+  | { type: "EmailAlreadyExists" }
+  | { type: "UsernameAlreadyExists" };
 
 export type LoginResult =
-  | { type: 'Success'; user: UserEntity }
-  | { type: 'InvalidCredentials' };
+  | { type: "Success"; user: UserEntity }
+  | { type: "InvalidCredentials" };
 
 export type UpdateProfileResult =
-  | { type: 'Success' }
-  | { type: 'UsernameAlreadyExists' }
-  | { type: 'UserNotFound' };
+  | { type: "Success" }
+  | { type: "UsernameAlreadyExists" }
+  | { type: "UserNotFound" };
 
 export type UpdatePasswordResult =
-  | { type: 'Success' }
-  | { type: 'WrongCurrentPassword' }
-  | { type: 'UserNotFound' };
+  | { type: "Success" }
+  | { type: "WrongCurrentPassword" }
+  | { type: "UserNotFound" };
 
 // ─── Repository ───────────────────────────────────────────────────────────────
 
@@ -42,13 +42,13 @@ class AuthRepositoryClass {
   async register(
     username: string,
     email: string,
-    password: string
+    password: string,
   ): Promise<RegisterResult> {
     if ((await userDao.emailExists(email)) > 0) {
-      return { type: 'EmailAlreadyExists' };
+      return { type: "EmailAlreadyExists" };
     }
     if ((await userDao.usernameExists(username)) > 0) {
-      return { type: 'UsernameAlreadyExists' };
+      return { type: "UsernameAlreadyExists" };
     }
 
     const passwordHash = await this.hashPassword(password);
@@ -58,20 +58,18 @@ class AuthRepositoryClass {
       passwordHash,
       profilePictureUri: null,
       level: 1,
-      tier: 'ROOKIE',
+      tier: "ROOKIE",
     });
 
     await AppPreferences.saveLoggedInUser(userId);
-    return { type: 'Success', userId };
+    return { type: "Success", userId };
   }
 
   async login(emailOrUsername: string, password: string): Promise<LoginResult> {
     const passwordHash = await this.hashPassword(password);
 
-    // Try direct login with email + hash
     let user = await userDao.login(emailOrUsername, passwordHash);
 
-    // Fallback: find by email/username then compare hash
     if (!user) {
       const found = await userDao.getUserByEmailOrUsername(emailOrUsername);
       if (found && found.passwordHash === passwordHash) {
@@ -81,9 +79,9 @@ class AuthRepositoryClass {
 
     if (user) {
       await AppPreferences.saveLoggedInUser(user.id);
-      return { type: 'Success', user };
+      return { type: "Success", user };
     }
-    return { type: 'InvalidCredentials' };
+    return { type: "InvalidCredentials" };
   }
 
   async logout(): Promise<void> {
@@ -93,41 +91,41 @@ class AuthRepositoryClass {
   async updateProfile(
     userId: number,
     username: string,
-    profilePictureUri: string | null
+    profilePictureUri: string | null,
   ): Promise<UpdateProfileResult> {
     const existing = await userDao.getUserByEmailOrUsername(username);
     if (existing && existing.id !== userId) {
-      return { type: 'UsernameAlreadyExists' };
+      return { type: "UsernameAlreadyExists" };
     }
 
     const userToUpdate = await userDao.getUserById(userId);
-    if (!userToUpdate) return { type: 'UserNotFound' };
+    if (!userToUpdate) return { type: "UserNotFound" };
 
     await userDao.updateUser({
       ...userToUpdate,
       username,
       profilePictureUri,
     });
-    return { type: 'Success' };
+    return { type: "Success" };
   }
 
   async updatePassword(
     userId: number,
     currentPassword: string,
-    newPassword: string
+    newPassword: string,
   ): Promise<UpdatePasswordResult> {
     const currentHash = await this.hashPassword(currentPassword);
     const newHash = await this.hashPassword(newPassword);
 
     const userToUpdate = await userDao.getUserById(userId);
-    if (!userToUpdate) return { type: 'UserNotFound' };
+    if (!userToUpdate) return { type: "UserNotFound" };
 
     if (userToUpdate.passwordHash !== currentHash) {
-      return { type: 'WrongCurrentPassword' };
+      return { type: "WrongCurrentPassword" };
     }
 
     await userDao.updateUser({ ...userToUpdate, passwordHash: newHash });
-    return { type: 'Success' };
+    return { type: "Success" };
   }
 
   async deleteAccount(userId: number): Promise<void> {
@@ -138,7 +136,7 @@ class AuthRepositoryClass {
   private async hashPassword(password: string): Promise<string> {
     const hash = await Crypto.digestStringAsync(
       Crypto.CryptoDigestAlgorithm.SHA256,
-      password
+      password,
     );
     return hash;
   }

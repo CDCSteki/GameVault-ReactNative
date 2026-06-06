@@ -1,9 +1,11 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { View, StyleSheet, Platform } from 'react-native';
+import { Platform } from 'react-native';
 import { useTheme } from '../../theme/ThemeContext';
+import { useTranslation } from 'react-i18next';
 
 export default function TabsLayout() {
+  const { t } = useTranslation();
   const { colors } = useTheme();
 
   return (
@@ -24,7 +26,7 @@ export default function TabsLayout() {
         tabBarLabelStyle: {
           fontSize: 10,
           fontWeight: '600',
-          letterSpacing: 0.5,
+          letterSpacing: 0.4,
         },
         tabBarIconStyle: { marginBottom: 0 },
       }}
@@ -32,8 +34,8 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'HOME',
-          tabBarIcon: ({ color, size }) => (
+          title: t('navigation.home'),
+          tabBarIcon: ({ color }) => (
             <Ionicons name="home" size={22} color={color} />
           ),
         }}
@@ -41,7 +43,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="search"
         options={{
-          title: 'SEARCH',
+          title: t('navigation.search'),
           tabBarIcon: ({ color }) => (
             <Ionicons name="search" size={22} color={color} />
           ),
@@ -50,7 +52,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="library"
         options={{
-          title: 'LIBRARY',
+          title: t('navigation.library'),
           tabBarIcon: ({ color }) => (
             <Ionicons name="film" size={22} color={color} />
           ),
@@ -59,7 +61,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'PROFILE',
+          title: t('navigation.profile'),
           tabBarIcon: ({ color }) => (
             <Ionicons name="person" size={22} color={color} />
           ),
@@ -68,7 +70,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'SETTINGS',
+          title: t('navigation.settings'),
           tabBarIcon: ({ color }) => (
             <Ionicons name="settings" size={22} color={color} />
           ),

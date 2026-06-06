@@ -12,7 +12,7 @@ export interface UserEntity {
 export type PlayStatus = 'NOT_PLAYED' | 'PLAYING' | 'PLAYED';
 
 export interface GameEntity {
-  userId: number; // <-- ADĂUGAT
+  userId: number;
   rawgId: number;
   name: string;
   coverImageUrl: string | null;

@@ -53,7 +53,6 @@ export default function RootLayout() {
   }
 
   return (
-    // <-- 3. Adăugarea background-ului pe containerul root
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: themeColors.background }}>
       <SafeAreaProvider>
         <ThemeProvider theme={appTheme}>
@@ -61,7 +60,6 @@ export default function RootLayout() {
           <Stack 
             screenOptions={{ 
               headerShown: false,
-              // <-- 4. Setarea culorii de conținut pe stiva de navigare
               contentStyle: { backgroundColor: themeColors.background } 
             }}
           >

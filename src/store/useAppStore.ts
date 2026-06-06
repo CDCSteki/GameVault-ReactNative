@@ -17,7 +17,7 @@ interface AppState {
   setLanguage: (lang: string) => Promise<void>;
 }
 
-export const useAppStore = create<AppState>((set, get) => ({
+export const useAppStore = create<AppState>((set) => ({
   isLoggedIn: false,
   userId: -1,
   appTheme: 'CYBER_DARK',

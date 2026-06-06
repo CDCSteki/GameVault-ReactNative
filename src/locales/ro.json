@@ -11,7 +11,7 @@
     "account_control": "CONTROL CONT",
     "deactivate_account": "Dezactivare Cont",
     "deactivate_desc": "Șterge permanent profilul, biblioteca de jocuri și toate datele asociate. Această acțiune este ireversibilă.",
-    "delete_profile": "ȘTERGE PROFIL",
+    "delete_profile": "ȘTERGE CONT",
     "delete_account_title": "Ștergere Cont",
     "delete_account_desc": "Ești sigur? Toate datele tale vor fi șterse definitiv.",
     "cancel": "Anulează",
@@ -209,5 +209,12 @@
     "retry": "Reîncearcă",
     "showing_titles": "Afișare {{count}} titluri",
     "show": "Arată:"
+  },
+  "navigation": {
+    "home": "ACASĂ",
+    "search": "CĂUTARE",
+    "library": "BIBLIOTECĂ",
+    "profile": "PROFIL",
+    "settings": "SETĂRI"
   }
 }

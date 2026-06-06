@@ -7,7 +7,6 @@ export default function LoginRoute() {
   const router = useRouter();
   const { resetLogin } = useLoginStore();
 
-  // Reset form every time we land on login
   useEffect(() => { resetLogin(); }, []);
 
   return (

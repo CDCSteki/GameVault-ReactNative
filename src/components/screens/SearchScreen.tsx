@@ -94,7 +94,7 @@ export function SearchScreen({ onGameClick }: SearchScreenProps) {
         />
       ) : (
         <View style={{ flex: 1 }}>
-          {/* Eroare de tip "toast" dacă avem deja date încărcate anterior dar netul pică la o nouă căutare */}
+          {/* Toast message if we have already loaded data previously but failed to load new search results */}
           {errorMessage && displayList.length > 0 && (
              <Text style={[Typography.bodyMedium, { color: colors.statusRed, paddingHorizontal: 16, paddingVertical: 8 }]}>
                {errorMessage}

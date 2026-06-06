@@ -209,5 +209,12 @@
     "retry": "Retry",
     "showing_titles": "Showing {{count}} titles",
     "show": "Show:"
+  },
+  "navigation": {
+    "home": "Home",
+    "search": "Search",
+    "library": "Library",
+    "profile": "Profile",
+    "settings": "Settings"
   }
 }

@@ -1,8 +1,6 @@
-import React from 'react';
 import {
   View,
   TextInput,
-  Text,
   TouchableOpacity,
   StyleSheet,
   TextInputProps,

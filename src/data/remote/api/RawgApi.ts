@@ -13,7 +13,7 @@ const http: AxiosInstance = axios.create({
 
 // ─── API calls ────────────────────────────────────────────────────────────────
 
-/** Popular This Year */
+/* Popular This Year */
 export async function getGamesThisYear(
   dates: string,
   pageSize: number = 10
@@ -29,7 +29,7 @@ export async function getGamesThisYear(
   return data;
 }
 
-/** All-Time Legends */
+/* All-Time Legends */
 export async function getAllTimeTopGames(
   pageSize: number = 10
 ): Promise<GamesListResponse> {
@@ -44,7 +44,7 @@ export async function getAllTimeTopGames(
   return data;
 }
 
-/** Discover / Filters */
+/* Discover / Filters */
 export async function getGamesByFilters(params: {
   genres?: string;
   tags?: string;
@@ -65,7 +65,7 @@ export async function getGamesByFilters(params: {
   return data;
 }
 
-/** Search with advanced filters */
+/* Search with advanced filters */
 export async function searchGames(params: {
   query: string;
   genres?: string;
@@ -92,7 +92,7 @@ export async function searchGames(params: {
   return data;
 }
 
-/** Game Details */
+/* Game Details */
 export async function getGameDetails(gameId: number): Promise<GameDetailDto> {
   const { data } = await http.get<GameDetailDto>(`/games/${gameId}`, {
     params: { key: RAWG_API_KEY },
@@ -100,7 +100,7 @@ export async function getGameDetails(gameId: number): Promise<GameDetailDto> {
   return data;
 }
 
-/** Screenshots */
+/* Screenshots */
 export async function getGameScreenshots(
   gameId: number
 ): Promise<GameScreenshotsResponse> {
@@ -111,7 +111,7 @@ export async function getGameScreenshots(
   return data;
 }
 
-/** Popular / Trending */
+/* Popular / Trending */
 export async function getPopularGames(
   pageSize: number = 10,
   page: number = 1
