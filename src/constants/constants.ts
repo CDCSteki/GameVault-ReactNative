@@ -1,4 +1,4 @@
-export const RAWG_API_KEY = 'f2e00623f6174bffb6280d80144152ee';
+export const RAWG_API_KEY = 'ffa6d66def914957acff9acd4806b419';
 export const RAWG_BASE_URL = 'https://api.rawg.io/api';
 
 export const DB_NAME = 'gamevault_database';

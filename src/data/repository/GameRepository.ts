@@ -130,7 +130,7 @@ class GameRepositoryClass {
 
     const isPlayed = status === 'PLAYED';
     await gameDao.updatePlayedStatus(userId, rawgId, isPlayed, status);
-    if (isPlayed) await this.recalculateUserLevel(userId);
+    await this.recalculateUserLevel(userId);
   }
 
   // ── LOCAL - WISHLIST ───────────────────────────────────────────────────────

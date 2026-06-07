@@ -3,6 +3,8 @@ import { GameRepository, gameDetailToEntity, entityToDetailDto } from '../data/r
 import { GameDetailDto, GameScreenshotDto } from '../data/remote/dto/GameDto';
 import { GameEntity, PlayStatus } from '../data/db/entities';
 import { useLibraryStore } from './useLibraryStore';
+import { useProfileStore } from './useAuthStore';
+import { useAppStore } from './useAppStore';
 import i18n from '../locales/i18n';
 
 interface GameDetailState {
@@ -133,10 +135,15 @@ export const useGameDetailStore = create<GameDetailState>((set, get) => ({
   },
 
   onPlayStatusChange: async (gameId, status) => {
-    await GameRepository.updatePlayStatus(gameId, status);
-    await get().refreshLocalState(gameId);
-    await useLibraryStore.getState().loadAll();
-  },
+  await GameRepository.updatePlayStatus(gameId, status);
+  await get().refreshLocalState(gameId);
+  await useLibraryStore.getState().loadAll();
+
+  const userId = useAppStore.getState().userId;
+  if (userId !== -1) {
+    await useProfileStore.getState().refreshUser(userId);
+  }
+},
 
   onRatingChange: async (gameId, rating) => {
     set({ userRating: rating });

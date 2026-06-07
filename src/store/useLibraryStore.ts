@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { entityToDetailDto, GameRepository } from '../data/repository/GameRepository';
 import { GameEntity, PlayStatus } from '../data/db/entities';
+import { useProfileStore } from './useAuthStore';
+import { useAppStore } from './useAppStore';
 
 export type LibraryTab = 'COLLECTION' | 'WISHLIST';
 export type CollectionFilter = 'ALL' | 'PLAYING' | 'PLAYED' | 'NOT_PLAYED';
@@ -54,9 +56,14 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   setCollectionFilter: (filter) => set({ collectionFilter: filter }),
 
   onPlayStatusChange: async (rawgId, status) => {
-    await GameRepository.updatePlayStatus(rawgId, status);
-    await get().loadCollection();
-  },
+  await GameRepository.updatePlayStatus(rawgId, status);
+  await get().loadCollection();
+
+  const userId = useAppStore.getState().userId;
+  if (userId !== -1) {
+    await useProfileStore.getState().refreshUser(userId);
+  }
+},
 
   onRemoveFromCollection: async (rawgId) => {
     await GameRepository.removeFromCollection(rawgId);

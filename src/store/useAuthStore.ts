@@ -1,8 +1,8 @@
-import { create } from 'zustand';
-import { AuthRepository } from '../data/repository/AuthRepository';
-import { UserEntity } from '../data/db/entities';
-import { useAppStore } from './useAppStore';
-import i18n from '../locales/i18n';
+import { create } from "zustand";
+import { AuthRepository } from "../data/repository/AuthRepository";
+import { UserEntity } from "../data/db/entities";
+import { useAppStore } from "./useAppStore";
+import i18n from "../locales/i18n";
 
 // ─── Login ────────────────────────────────────────────────────────────────────
 
@@ -21,8 +21,8 @@ interface LoginState {
 }
 
 export const useLoginStore = create<LoginState>((set, get) => ({
-  emailOrUsername: '',
-  password: '',
+  emailOrUsername: "",
+  password: "",
   isPasswordVisible: false,
   isLoading: false,
   errorMessage: null,
@@ -35,26 +35,35 @@ export const useLoginStore = create<LoginState>((set, get) => ({
   login: async (onSuccess) => {
     const { emailOrUsername, password } = get();
     if (!emailOrUsername.trim()) {
-      set({ errorMessage: i18n.t('auth.enter_email_or_username') });
+      set({ errorMessage: i18n.t("auth.enter_email_or_username") });
       return;
     }
     if (!password) {
-      set({ errorMessage: i18n.t('auth.enter_password') });
+      set({ errorMessage: i18n.t("auth.enter_password") });
       return;
     }
     set({ isLoading: true, errorMessage: null });
     const result = await AuthRepository.login(emailOrUsername.trim(), password);
-    if (result.type === 'Success') {
+    if (result.type === "Success") {
       await useAppStore.getState().setLoggedIn(result.user.id);
       set({ isLoading: false });
       onSuccess();
     } else {
-      set({ isLoading: false, errorMessage: i18n.t('auth.invalid_credentials') });
+      set({
+        isLoading: false,
+        errorMessage: i18n.t("auth.invalid_credentials"),
+      });
     }
   },
 
   resetLogin: () =>
-    set({ emailOrUsername: '', password: '', isPasswordVisible: false, isLoading: false, errorMessage: null }),
+    set({
+      emailOrUsername: "",
+      password: "",
+      isPasswordVisible: false,
+      isLoading: false,
+      errorMessage: null,
+    }),
 }));
 
 // ─── Register ─────────────────────────────────────────────────────────────────
@@ -80,10 +89,10 @@ interface RegisterState {
 }
 
 export const useRegisterStore = create<RegisterState>((set, get) => ({
-  username: '',
-  email: '',
-  password: '',
-  confirmPassword: '',
+  username: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
   isPasswordVisible: false,
   isConfirmPasswordVisible: false,
   isLoading: false,
@@ -100,29 +109,53 @@ export const useRegisterStore = create<RegisterState>((set, get) => ({
 
   register: async (onSuccess) => {
     const { username, email, password, confirmPassword } = get();
-    if (!username.trim()) { set({ errorMessage: i18n.t('auth.enter_username') }); return; }
-    if (username.length < 3) { set({ errorMessage: i18n.t('auth.username_min_length') }); return; }
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      set({ errorMessage: i18n.t('auth.invalid_email') }); return;
+    if (!username.trim()) {
+      set({ errorMessage: i18n.t("auth.enter_username") });
+      return;
     }
-    if (password.length < 6) { set({ errorMessage: i18n.t('auth.password_min_length') }); return; }
-    if (password !== confirmPassword) { set({ errorMessage: i18n.t('auth.passwords_do_not_match') }); return; }
+    if (username.length < 3) {
+      set({ errorMessage: i18n.t("auth.username_min_length") });
+      return;
+    }
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      set({ errorMessage: i18n.t("auth.invalid_email") });
+      return;
+    }
+    if (password.length < 6) {
+      set({ errorMessage: i18n.t("auth.password_min_length") });
+      return;
+    }
+    if (password !== confirmPassword) {
+      set({ errorMessage: i18n.t("auth.passwords_do_not_match") });
+      return;
+    }
 
     set({ isLoading: true, errorMessage: null });
-    const result = await AuthRepository.register(username.trim(), email.trim().toLowerCase(), password);
-    if (result.type === 'Success') {
+    const result = await AuthRepository.register(
+      username.trim(),
+      email.trim().toLowerCase(),
+      password,
+    );
+    if (result.type === "Success") {
       await useAppStore.getState().setLoggedIn(result.userId);
       set({ isLoading: false });
       onSuccess();
-    } else if (result.type === 'EmailAlreadyExists') {
-      set({ isLoading: false, errorMessage: i18n.t('auth.email_taken') });
+    } else if (result.type === "EmailAlreadyExists") {
+      set({ isLoading: false, errorMessage: i18n.t("auth.email_taken") });
     } else {
-      set({ isLoading: false, errorMessage: i18n.t('auth.username_taken') });
+      set({ isLoading: false, errorMessage: i18n.t("auth.username_taken") });
     }
   },
 
   resetRegister: () =>
-    set({ username: '', email: '', password: '', confirmPassword: '', isLoading: false, errorMessage: null }),
+    set({
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      isLoading: false,
+      errorMessage: null,
+    }),
 }));
 
 // ─── Profile ──────────────────────────────────────────────────────────────────
@@ -154,14 +187,15 @@ interface ProfileState {
   updateProfilePicture: (uri: string, userId: number) => Promise<void>;
   logout: (onSuccess: () => void) => Promise<void>;
   clearMessages: () => void;
+  refreshUser: (userId: number) => Promise<void>;
 }
 
 export const useProfileStore = create<ProfileState>((set, get) => ({
   user: null,
-  username: '',
-  currentPassword: '',
-  newPassword: '',
-  confirmNewPassword: '',
+  username: "",
+  currentPassword: "",
+  newPassword: "",
+  confirmNewPassword: "",
   isCurrentPasswordVisible: false,
   isNewPasswordVisible: false,
   isConfirmPasswordVisible: false,
@@ -174,15 +208,19 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     const user = await AuthRepository.getUserById(userId);
     set({
       user,
-      username: user?.username ?? '',
+      username: user?.username ?? "",
       profilePictureUri: user?.profilePictureUri ?? null,
     });
   },
 
-  setUsername: (v) => set({ username: v, errorMessage: null, successMessage: null }),
-  setCurrentPassword: (v) => set({ currentPassword: v, errorMessage: null, successMessage: null }),
-  setNewPassword: (v) => set({ newPassword: v, errorMessage: null, successMessage: null }),
-  setConfirmNewPassword: (v) => set({ confirmNewPassword: v, errorMessage: null, successMessage: null }),
+  setUsername: (v) =>
+    set({ username: v, errorMessage: null, successMessage: null }),
+  setCurrentPassword: (v) =>
+    set({ currentPassword: v, errorMessage: null, successMessage: null }),
+  setNewPassword: (v) =>
+    set({ newPassword: v, errorMessage: null, successMessage: null }),
+  setConfirmNewPassword: (v) =>
+    set({ confirmNewPassword: v, errorMessage: null, successMessage: null }),
   toggleCurrentPasswordVisibility: () =>
     set((s) => ({ isCurrentPasswordVisible: !s.isCurrentPasswordVisible })),
   toggleNewPasswordVisibility: () =>
@@ -192,35 +230,83 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
 
   saveUsername: async (userId) => {
     const { username, profilePictureUri } = get();
-    if (!username.trim()) { set({ errorMessage: i18n.t('profile_errors.username_empty') }); return; }
-    if (username.length < 3) { set({ errorMessage: i18n.t('profile_errors.username_min_length') }); return; }
+    if (!username.trim()) {
+      set({ errorMessage: i18n.t("profile_errors.username_empty") });
+      return;
+    }
+    if (username.length < 3) {
+      set({ errorMessage: i18n.t("profile_errors.username_min_length") });
+      return;
+    }
     set({ isLoading: true });
-    const result = await AuthRepository.updateProfile(userId, username.trim(), profilePictureUri);
-    if (result.type === 'Success') {
-      set({ isLoading: false, successMessage: i18n.t('profile_errors.update_success') });
+    const result = await AuthRepository.updateProfile(
+      userId,
+      username.trim(),
+      profilePictureUri,
+    );
+    if (result.type === "Success") {
+      set({
+        isLoading: false,
+        successMessage: i18n.t("profile_errors.update_success"),
+      });
       await get().loadUser(userId);
-    } else if (result.type === 'UsernameAlreadyExists') {
-      set({ isLoading: false, errorMessage: i18n.t('profile_errors.username_taken') });
+    } else if (result.type === "UsernameAlreadyExists") {
+      set({
+        isLoading: false,
+        errorMessage: i18n.t("profile_errors.username_taken"),
+      });
     } else {
-      set({ isLoading: false, errorMessage: i18n.t('profile_errors.user_not_found') });
+      set({
+        isLoading: false,
+        errorMessage: i18n.t("profile_errors.user_not_found"),
+      });
     }
   },
 
   savePassword: async (userId) => {
     const { currentPassword, newPassword, confirmNewPassword } = get();
-    if (!currentPassword) { set({ errorMessage: i18n.t('profile_errors.enter_current_password_error') }); return; }
-    if (newPassword.length < 6) { set({ errorMessage: i18n.t('profile_errors.password_min_length') }); return; }
-    if (newPassword !== confirmNewPassword) { set({ errorMessage: i18n.t('profile_errors.passwords_do_not_match') }); return; }
-    if (currentPassword === newPassword) { set({ errorMessage: i18n.t('profile_errors.new_password_same') }); return; }
+    if (!currentPassword) {
+      set({
+        errorMessage: i18n.t("profile_errors.enter_current_password_error"),
+      });
+      return;
+    }
+    if (newPassword.length < 6) {
+      set({ errorMessage: i18n.t("profile_errors.password_min_length") });
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      set({ errorMessage: i18n.t("profile_errors.passwords_do_not_match") });
+      return;
+    }
+    if (currentPassword === newPassword) {
+      set({ errorMessage: i18n.t("profile_errors.new_password_same") });
+      return;
+    }
     set({ isLoading: true });
-    const result = await AuthRepository.updatePassword(userId, currentPassword, newPassword);
-    if (result.type === 'Success') {
-      set({ isLoading: false, currentPassword: '', newPassword: '', confirmNewPassword: '',
-        successMessage: i18n.t('profile_errors.password_update_success') });
-    } else if (result.type === 'WrongCurrentPassword') {
-      set({ isLoading: false, errorMessage: i18n.t('profile_errors.wrong_current_password') });
+    const result = await AuthRepository.updatePassword(
+      userId,
+      currentPassword,
+      newPassword,
+    );
+    if (result.type === "Success") {
+      set({
+        isLoading: false,
+        currentPassword: "",
+        newPassword: "",
+        confirmNewPassword: "",
+        successMessage: i18n.t("profile_errors.password_update_success"),
+      });
+    } else if (result.type === "WrongCurrentPassword") {
+      set({
+        isLoading: false,
+        errorMessage: i18n.t("profile_errors.wrong_current_password"),
+      });
     } else {
-      set({ isLoading: false, errorMessage: i18n.t('profile_errors.user_not_found') });
+      set({
+        isLoading: false,
+        errorMessage: i18n.t("profile_errors.user_not_found"),
+      });
     }
   },
 
@@ -235,9 +321,18 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   logout: async (onSuccess) => {
     await AuthRepository.logout();
     await useAppStore.getState().setLoggedOut();
-    set({ user: null, username: '', profilePictureUri: null });
+    set({ user: null, username: "", profilePictureUri: null });
     onSuccess();
   },
 
   clearMessages: () => set({ successMessage: null, errorMessage: null }),
+
+  refreshUser: async (userId) => {
+    const user = await AuthRepository.getUserById(userId);
+    set({
+      user,
+      username: user?.username ?? "",
+      profilePictureUri: user?.profilePictureUri ?? null,
+    });
+  },
 }));
